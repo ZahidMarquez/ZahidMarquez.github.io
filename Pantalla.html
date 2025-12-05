@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pantalla</title>
+<style>
+/* Estilo general */
+body {
+  background: linear-gradient(135deg, #ffd6e0, #d0f0fd);
+  color: #333;
+  font-family: 'Poppins', sans-serif;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+/* Título */
+h1 {
+  text-align: center;
+  font-size: 48px;
+  margin-bottom: 30px;
+  color: #555;
+  text-shadow: 1px 1px 4px rgba(255,255,255,0.5);
+}
+
+/* Tabla */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 22px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+}
+
+th {
+  background: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  color: #555;
+}
+
+tbody tr {
+  background: rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transform: scale(1.02);
+}
+
+/* Llamada grande */
+#llamada-box {
+  display: none;
+  text-align: center;
+  margin-top: 50px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+#llamada-box h2 {
+  font-size: 50px;
+  margin-bottom: 20px;
+  color: #ffb347;
+  text-shadow: 2px 2px 6px rgba(255,255,255,0.7);
+}
+
+/* Animación split flap */
+@keyframes flip {
+  0% { transform: rotateX(90deg); opacity: 0; }
+  50% { transform: rotateX(-20deg); opacity: 1; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+span {
+  display: inline-block;
+  animation: flip 0.5s;
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* BOTÓN FULLSCREEN */
+#btn-fullscreen {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #ffb347;
+  border: none;
+  padding: 15px 20px;
+  font-size: 20px;
+  border-radius: 50px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transition: 0.3s ease;
+  z-index: 9999;
+}
+
+#btn-fullscreen:hover {
+  background: #ffa726;
+  transform: scale(1.05);
+}
+
+/* Ocultar botón en fullscreen */
+.fullscreen-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Zona invisible para detectar mouse en fullscreen */
+#fs-hover-zone {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 140px;
+  height: 140px;
+  z-index: 50;
+  pointer-events: auto;
+}
+</style>
+</head>
+<body>
+
+<h1>✈ LISTA DE ESPERA</h1>
+
+<div id="llamada-box"></div>
+
+<table id="tabla">
+  <thead>
+    <tr>
+      <th>CÓDIGO</th>
+      <th>NOMBRE</th>
+      <th>PAX</th>
+      <th>REGISTRO</th>
+    </tr>
+  </thead>
+  <tbody id="tabla-aire"></tbody>
+</table>
+
+<!-- Zona invisible que detecta hover -->
+<div id="fs-hover-zone"></div>
+
+<!-- Botón fullscreen -->
+<button id="btn-fullscreen">⛶</button>
+
+<audio id="sonidoPantalla" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+<script>
+// Split flap animación
+function splitFlap(text) {
+  return text.split("")
+    .map(l => `<span>${l}</span>`)
+    .join("");
+}
+
+// Render lista normal
+function renderLista(lista) {
+  const tbody = document.getElementById("tabla-aire");
+  tbody.innerHTML = "";
+
+  lista.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.codigo}</td>
+      <td>${p.nombre}</td>
+      <td>${p.pasajeros}</td>
+      <td>${p.horaRegistro}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Render llamada en grande
+function renderLlamada(p) {
+  const box = document.getElementById("llamada-box");
+  const tabla = document.getElementById("tabla");
+
+  if (!p) {
+    box.style.display = "none";
+    tabla.style.display = "table";
+    return;
+  }
+
+  tabla.style.display = "none";
+  box.style.display = "block";
+
+  box.innerHTML = `
+    <h2>${splitFlap("LLAMANDO")}</h2>
+    <div style="font-size:60px;font-weight:bold;">${splitFlap(p.codigo)}</div>
+    <div style="font-size:45px;">${splitFlap(p.nombre)}</div>
+    <div style="font-size:36px;margin-top:15px;">${splitFlap(p.pasajeros + " PAX")}</div>
+  `;
+
+  const audio = document.getElementById("sonidoPantalla");
+  audio.currentTime = 0;
+  audio.play();
+}
+
+let oldLista = "";
+let oldLlamada = "";
+
+setInterval(() => {
+  const listaRaw = localStorage.getItem("listaEspera");
+  const llamadaRaw = localStorage.getItem("llamadaActiva");
+
+  if (listaRaw !== oldLista) {
+    oldLista = listaRaw;
+    renderLista(JSON.parse(listaRaw) || []);
+  }
+
+  if (llamadaRaw !== oldLlamada) {
+    oldLlamada = llamadaRaw;
+    const llamada = JSON.parse(llamadaRaw);
+    renderLlamada(llamada);
+  }
+}, 500);
+
+
+/* --- FULLSCREEN CONTROL (CORREGIDO) --- */
+const btnFullscreen = document.getElementById("btn-fullscreen");
+const fsHoverZone = document.getElementById("fs-hover-zone");
+
+btnFullscreen.addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.error("Error al intentar fullscreen:", err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) {
+    btnFullscreen.classList.add("fullscreen-hidden");
+  } else {
+    btnFullscreen.classList.remove("fullscreen-hidden");
+  }
+});
+
+fsHoverZone.addEventListener("mousemove", () => {
+  if (document.fullscreenElement) {
+    btnFullscreen.classList.remove("fullscreen-hidden");
+    setTimeout(() => {
+      if (document.fullscreenElement) {
+        btnFullscreen.classList.add("fullscreen-hidden");
+      }
+    }, 2000);
+  }
+});
+</script>
+
+</body>
+</html>
+
