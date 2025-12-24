@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Lista de Espera Interactiva</title>
+<link rel="stylesheet" href="estilos.css">
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js"></script>
+</head>
+<body>
+<h2>📋 Lista de Espera ✈️</h2>
+
+<div style="text-align:center;">
+<input type="text" id="nombre" placeholder="Nombre del pasajero">
+<input type="number" id="pasajeros" placeholder="Número de pasajeros" min="1">
+<input type="tel" id="telefono" placeholder="Teléfono (WhatsApp)">
+<select id="tipo">
+  <option value="Aeromexico">Aeromexico</option>
+  <option value="Platinum">Platinum</option>
+  <option value="Centurion">Centurion</option>
+</select>
+<br>
+<label for="whatsappCheckbox">
+    <input type="checkbox" id="whatsappCheckbox" checked> Enviar WhatsApp
+</label>
+<br>
+<button id="btnAgregar">Agregar</button>
+<button id="btnPantalla">📺 Pantalla</button>
+</div>
+
+<h3>Pasajeros en espera:</h3>
+<ul id="lista"></ul>
+
+<h3>Registro histórico:</h3>
+<ul id="historial"></ul>
+
+<h3>Total de personas registradas: <span id="total">0</span></h3>
+
+<h3>Contador por categorías:</h3>
+<ul>
+  <li><strong>Aeromexico:</strong> <span id="cont-aero">0</span></li>
+  <li><strong>Platinum:</strong> <span id="cont-plat">0</span></li>
+  <li><strong>Centurion:</strong> <span id="cont-cent">0</span></li>
+</ul>
+
+<button class="borrar" onclick="borrarHistorial()">🗑️ Borrar historial</button>
+<button class="exportar" onclick="exportarExcel()">💾 Exportar a Excel</button>
+
+<audio id="sonidoLlamado" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<script src="script.js"></script>
+</body>
+</html>

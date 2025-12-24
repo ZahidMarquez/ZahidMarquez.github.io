@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pantalla</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<h1>✈ LISTA DE ESPERA</h1>
+
+<div id="llamada-box"></div>
+
+<table id="tabla">
+  <thead>
+    <tr>
+      <th>CÓDIGO</th>
+      <th>NOMBRE</th>
+      <th>PAX</th>
+      <th>REGISTRO</th>
+    </tr>
+  </thead>
+  <tbody id="tabla-aire"></tbody>
+</table>
+
+<div id="fs-hover-zone"></div>
+<button id="btn-fullscreen">⛶</button>
+
+<audio id="sonidoPantalla" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<script>
+function splitFlap(text){return text.split("").map(l=>`<span>${l}</span>`).join("");}
+function renderLista(lista){const tbody=document.getElementById("tabla-aire");tbody.innerHTML="";lista.forEach(p=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${p.codigo}</td><td>${p.nombre}</td><td>${p.pasajeros}</td><td>${p.horaRegistro}</td>`;tbody.appendChild(tr);});}
+function renderLlamada(p){const box=document.getElementById("llamada-box");const tabla=document.getElementById("tabla");if(!p){box.style.display="none";tabla.style.display="table";return;}tabla.style.display="none";box.style.display="block";box.innerHTML=`<h2>${splitFlap("LLAMANDO")}</h2><div style="font-size:60px;font-weight:bold;">${splitFlap(p.codigo)}</div><div style="font-size:45px;">${splitFlap(p.nombre)}</div><div style="font-size:36px;margin-top:15px;">${splitFlap(p.pasajeros + " PAX")}</div>`;const audio=document.getElementById("sonidoPantalla");audio.currentTime=0;audio.play();}
+let oldLista="",oldLlamada="";
+setInterval(()=>{const listaRaw=localStorage.getItem("listaEspera");const llamadaRaw=localStorage.getItem("llamadaActiva");if(listaRaw!==oldLista){oldLista=listaRaw;renderLista(JSON.parse(listaRaw)||[]);}if(llamadaRaw!==oldLlamada){oldLlamada=llamadaRaw;renderLlamada(JSON.parse(llamadaRaw));}},500);
+
+/* Fullscreen */
+const btnFullscreen=document.getElementById("btn-fullscreen");
+btnFullscreen.onclick=()=>document.documentElement.requestFullscreen();
+</script>
+</body>
+</html>
