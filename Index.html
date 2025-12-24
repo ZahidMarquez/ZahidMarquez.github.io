@@ -58,9 +58,7 @@ li {
     transition: transform 0.2s;
 }
 
-li:hover {
-    transform: translateY(-2px);
-}
+li:hover { transform: translateY(-2px); }
 
 /* Botones pastel */
 .btn-llamar {
@@ -72,9 +70,7 @@ li:hover {
     border-radius: 6px;
 }
 
-.btn-llamar:hover {
-    background: #89c2d9;
-}
+.btn-llamar:hover { background: #89c2d9; }
 
 .btn-stop {
     margin-left: 10px;
@@ -85,9 +81,7 @@ li:hover {
     border-radius: 6px;
 }
 
-.btn-stop:hover {
-    background: #ff928b;
-}
+.btn-stop:hover { background: #ff928b; }
 
 /* Colores pastel por tipo de pasajero */
 li.aeromexico { background: #a8dadc; }
@@ -139,17 +133,11 @@ button.borrar:hover, button.exportar:hover {
 <div style="text-align:center;">
 <input type="text" id="nombre" placeholder="Nombre del pasajero">
 <input type="number" id="pasajeros" placeholder="Número de pasajeros" min="1">
-<input type="tel" id="telefono" placeholder="Teléfono (WhatsApp)">
 <select id="tipo">
   <option value="Aeromexico">Aeromexico</option>
   <option value="Platinum">Platinum</option>
   <option value="Centurion">Centurion</option>
 </select>
-<br>
-<label for="whatsappCheckbox">
-    <input type="checkbox" id="whatsappCheckbox" checked>
-    Enviar mensaje por WhatsApp
-</label>
 <br>
 <button id="btnAgregar">Agregar</button>
 <button id="btnPantalla">📺 Pantalla</button>
@@ -191,11 +179,10 @@ actualizarContadores();
 document.getElementById("btnAgregar").addEventListener("click", () => {
     const nombre = document.getElementById("nombre").value.trim();
     const pasajeros = Number(document.getElementById("pasajeros").value);
-    const telefono = document.getElementById("telefono").value.trim();
     const tipo = document.getElementById("tipo").value;
 
-    if (!nombre || pasajeros <= 0 || !telefono) { 
-        alert("Por favor ingrese un nombre válido, número de pasajeros y teléfono."); 
+    if (!nombre || pasajeros <= 0) { 
+        alert("Por favor ingrese un nombre válido y número de pasajeros."); 
         return; 
     }
 
@@ -205,7 +192,7 @@ document.getElementById("btnAgregar").addEventListener("click", () => {
 
     const horaRegistro = new Date().toLocaleString();
 
-    const pasajero = { codigo, nombre, pasajeros, telefono, tipo, horaRegistro };
+    const pasajero = { codigo, nombre, pasajeros, tipo, horaRegistro };
     listaEspera.push(pasajero);
     localStorage.setItem("listaEspera", JSON.stringify(listaEspera));
 
@@ -217,29 +204,7 @@ document.getElementById("btnAgregar").addEventListener("click", () => {
 
     document.getElementById("nombre").value = "";
     document.getElementById("pasajeros").value = "";
-    document.getElementById("telefono").value = "";
 });
-
-// ENVIAR WHATSAPP
-function enviarWhatsApp(pas) {
-    if (!pas.telefono) {
-        alert("Este pasajero no tiene número registrado.");
-        return;
-    }
-
-    // El mensaje que se enviará
-    const mensaje = `Hola ${pas.nombre}, es tu turno para pasar. Por favor acude al mostrador.`;
-
-    // Codificar el número de teléfono y el mensaje
-    const numeroWhatsApp = pas.telefono.replace(/[^0-9]/g, "");  // Elimina cualquier carácter que no sea número
-    const mensajeCodificado = encodeURIComponent(mensaje); // Codifica el mensaje
-
-    // Crear la URL para abrir WhatsApp con el mensaje predefinido
-    const url = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
-
-    // Abrir WhatsApp con el mensaje y número de teléfono
-    window.open(url, "_blank");
-}
 
 // LLAMAR PASAJERO
 function llamarPasajero(codigo){
@@ -251,14 +216,7 @@ function llamarPasajero(codigo){
 
     document.getElementById("sonidoLlamado").play();
 
-    // Verificar si el checkbox está marcado
-    const enviarWhatsAppActivado = document.getElementById("whatsappCheckbox").checked;
-
-    if (enviarWhatsAppActivado) {
-        enviarWhatsApp(pas);  // Solo enviar si el checkbox está marcado
-    }
-
-    renderLista(); 
+    renderLista();
 }
 
 // DEJAR DE LLAMAR
@@ -296,13 +254,10 @@ function renderLista(){
     listaEspera.forEach(p => {
         const li = document.createElement("li");
 
-        // Clase según tipo
         li.className = p.tipo.toLowerCase(); 
 
-        // Resaltar si es llamado
-        if (llamadaActiva && llamadaActiva.codigo === p.codigo) {
+        if (llamadaActiva && llamadaActiva.codigo === p.codigo)
             li.classList.add("llamando");
-        }
 
         li.innerHTML = `<strong>${p.codigo}</strong> — ${p.nombre} — ${p.pasajeros} pax — <em>${p.tipo}</em>`;
 
@@ -367,7 +322,6 @@ function exportarExcel() {
         return;
     }
 
-    // Crear worksheet a partir del historial
     const ws_data = historial.map(h => ({
         Código: h.codigo,
         Nombre: h.nombre,
