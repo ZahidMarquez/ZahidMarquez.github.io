@@ -15,32 +15,6 @@ renderLista();
 renderHistorial();
 actualizarContadores();
 
-// Imprimir (QZ Tray)
-async function imprimirTicket(pas) {
-    try {
-        if(!window.qz) return;
-        await qz.websocket.connect();
-        const impresora = await qz.printers.find("ECLINE 800");
-        const config = qz.configs.create(impresora);
-        const data = [
-            '\x1B\x40',
-            '\x1B\x61\x01',
-            '*** LISTA DE ESPERA ***\n',
-            '\x1B\x61\x00',
-            `Código: ${pas.codigo}\n`,
-            `Nombre: ${pas.nombre}\n`,
-            `Pasajeros: ${pas.pasajeros}\n`,
-            `Categoría: ${pas.tipo}\n`,
-            `Registro: ${pas.horaRegistro}\n`,
-            '--------------------------\n',
-            '\n\n',
-            '\x1D\x56\x00'
-        ];
-        await qz.print(config, data);
-        qz.websocket.disconnect();
-    } catch (err) { console.error(err); }
-}
-
 // Agregar pasajero
 document.getElementById("btnAgregar").addEventListener("click", () => {
     const nombre = document.getElementById("nombre").value.trim();
@@ -70,12 +44,6 @@ document.getElementById("btnAgregar").addEventListener("click", () => {
     document.getElementById("telefono").value = "";
 });
 
-// WhatsApp
-function enviarWhatsApp(pas) {
-    const numero = pas.telefono.replace(/[^0-9]/g, "");
-    const mensaje = `Hola ${pas.nombre}, es tu turno para pasar.`;
-    window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
-}
 
 // Llamar pasajero
 function llamarPasajero(codigo){
@@ -84,7 +52,6 @@ function llamarPasajero(codigo){
     localStorage.setItem("llamadaActiva", JSON.stringify(pas));
     localStorage.setItem("actualizarPantalla", Date.now());
     document.getElementById("sonidoLlamado").play();
-    if(document.getElementById("whatsappCheckbox").checked) enviarWhatsApp(pas);
     renderLista();
 }
 
@@ -176,3 +143,4 @@ function exportarExcel(){
 document.getElementById("btnPantalla")?.addEventListener("click",()=>{
     window.open("pantalla.html","_blank");
 });
+
