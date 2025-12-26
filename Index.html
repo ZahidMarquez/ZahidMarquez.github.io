@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <title>Lista de Espera Interactiva</title>
 
-<!-- SheetJS para Excel -->
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <style>
@@ -46,20 +45,6 @@ li.centurion { background: #ffd6a5; }
 
 .exportar { background: #bde0fe; }
 .borrar   { background: #ffc8dd; }
-
-/* ===== TICKET IMPRESIÓN ===== */
-@media print {
-    body * { visibility: hidden; }
-    #ticket, #ticket * { visibility: visible; }
-    #ticket { position: absolute; left: 0; top: 0; width: 80mm; }
-    .ticket {
-        text-align: center;
-        font-family: monospace;
-    }
-    .ticket h1 { font-size: 32px; margin: 5px 0; }
-    .ticket h2 { font-size: 18px; margin: 5px 0; }
-    .ticket p { font-size: 14px; margin: 3px 0; }
-}
 </style>
 </head>
 
@@ -88,6 +73,14 @@ li.centurion { background: #ffd6a5; }
 <br>
 <button id="btnAgregar">Agregar</button>
 <button id="btnPantalla">📺 Pantalla</button>
+
+<!-- TOGGLE TICKET -->
+<div style="margin-top:10px;">
+    <label style="font-weight:bold;">
+        <input type="checkbox" id="toggleTicket">
+        🖨️ Imprimir ticket automáticamente
+    </label>
+</div>
 </div>
 
 <h3>Pasajeros en espera</h3>
@@ -103,35 +96,30 @@ li.centurion { background: #ffd6a5; }
 <button class="borrar" onclick="borrarHistorial()">🗑️ Borrar historial</button>
 </div>
 
-<!-- TICKET OCULTO -->
-<div id="ticket" style="display:none;">
-    <div class="ticket">
-        <h2>LISTA DE ESPERA</h2>
-        <hr>
-        <p><strong>Código:</strong></p>
-        <h1 id="ticketCodigo">---</h1>
-        <p id="ticketNombre"></p>
-        <p id="ticketTipo"></p>
-        <p id="ticketHora"></p>
-        <hr>
-        <p>Preséntese cuando sea llamado</p>
-    </div>
-</div>
-
 <audio id="sonidoLlamado" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
-// STORAGE
+// ===== STORAGE =====
 let totalPersonas = Number(localStorage.getItem("totalPersonas")) || 0;
 let historial = JSON.parse(localStorage.getItem("historial")) || [];
 let listaEspera = JSON.parse(localStorage.getItem("listaEspera")) || [];
 let codigoCounter = Number(localStorage.getItem("codigoCounter")) || 1;
 
+// ===== TICKET =====
+let imprimirTicket = localStorage.getItem("imprimirTicket") === "true";
+const toggleTicket = document.getElementById("toggleTicket");
+toggleTicket.checked = imprimirTicket;
+
+toggleTicket.addEventListener("change", () => {
+    imprimirTicket = toggleTicket.checked;
+    localStorage.setItem("imprimirTicket", imprimirTicket);
+});
+
 document.getElementById("total").textContent = totalPersonas;
 renderLista();
 renderHistorial();
 
-// AGREGAR
+// ===== AGREGAR =====
 document.getElementById("btnAgregar").addEventListener("click", () => {
     const nombre = document.getElementById("nombre").value.trim();
     const pasajerosInput = document.getElementById("pasajeros").value.trim();
@@ -142,7 +130,6 @@ document.getElementById("btnAgregar").addEventListener("click", () => {
         return alert("Ingrese solo números enteros mayores a 0.");
 
     const pasajeros = Number(pasajerosInput);
-
     const codigo = "AE-" + codigoCounter.toString().padStart(4,"0");
     codigoCounter++;
     localStorage.setItem("codigoCounter", codigoCounter);
@@ -152,6 +139,10 @@ document.getElementById("btnAgregar").addEventListener("click", () => {
         horaRegistro: new Date().toLocaleString()
     };
 
+    if (imprimirTicket) {
+        imprimirTicketPasajero(pasajero);
+    }
+
     listaEspera.push(pasajero);
     localStorage.setItem("listaEspera", JSON.stringify(listaEspera));
 
@@ -160,25 +151,40 @@ document.getElementById("btnAgregar").addEventListener("click", () => {
     document.getElementById("total").textContent = totalPersonas;
 
     renderLista();
-    imprimirTicket(pasajero);
-
     document.getElementById("nombre").value = "";
     document.getElementById("pasajeros").value = "";
 });
 
-// IMPRIMIR TICKET
-function imprimirTicket(pasajero){
-    document.getElementById("ticketCodigo").textContent = pasajero.codigo;
-    document.getElementById("ticketNombre").textContent = pasajero.nombre;
-    document.getElementById("ticketTipo").textContent = "Tipo: " + pasajero.tipo;
-    document.getElementById("ticketHora").textContent = "Hora: " + new Date().toLocaleString();
-
-    document.getElementById("ticket").style.display = "block";
-    window.print();
-    document.getElementById("ticket").style.display = "none";
+// ===== IMPRIMIR TICKET =====
+function imprimirTicketPasajero(p) {
+    const v = window.open("", "PRINT", "width=300,height=400");
+    v.document.write(`
+        <html><head>
+        <title>Ticket</title>
+        <style>
+            body{font-family:monospace;text-align:center;}
+            h2{margin:5px 0;}
+            hr{margin:10px 0;}
+        </style>
+        </head>
+        <body>
+            <h2>LISTA DE ESPERA</h2>
+            <hr>
+            <p><strong>${p.codigo}</strong></p>
+            <p>${p.nombre}</p>
+            <p>${p.pasajeros} pasajeros</p>
+            <p>${p.tipo}</p>
+            <hr>
+            <p>${p.horaRegistro}</p>
+        </body></html>
+    `);
+    v.document.close();
+    v.focus();
+    v.print();
+    v.close();
 }
 
-// LLAMAR
+// ===== LLAMAR =====
 function llamarPasajero(codigo){
     const pas = listaEspera.find(p => p.codigo === codigo);
     if (!pas) return;
@@ -187,26 +193,30 @@ function llamarPasajero(codigo){
     document.getElementById("sonidoLlamado").play();
 }
 
-// FINALIZAR
+// ===== FINALIZAR =====
 function detenerLlamada(codigo){
     const idx = listaEspera.findIndex(p => p.codigo === codigo);
     if (idx < 0) return;
+
     const pas = listaEspera[idx];
     listaEspera.splice(idx, 1);
     localStorage.setItem("listaEspera", JSON.stringify(listaEspera));
-    historial.push({...pas, horaLlamado: new Date().toLocaleString()});
+
+    historial.push({ ...pas, horaLlamado: new Date().toLocaleString() });
     localStorage.setItem("historial", JSON.stringify(historial));
 
     totalPersonas -= pas.pasajeros;
     localStorage.setItem("totalPersonas", totalPersonas);
     document.getElementById("total").textContent = totalPersonas;
+
     localStorage.setItem("llamadaActiva", "null");
     localStorage.setItem("actualizarPantalla", Date.now());
+
     renderLista();
     renderHistorial();
 }
 
-// RENDER LISTA
+// ===== RENDER =====
 function renderLista(){
     const ul = document.getElementById("lista");
     ul.innerHTML = "";
@@ -214,20 +224,22 @@ function renderLista(){
         const li = document.createElement("li");
         li.className = p.tipo.toLowerCase();
         li.innerHTML = `<strong>${p.codigo}</strong> — ${p.nombre} — ${p.pasajeros} pax — ${p.tipo}`;
-        const btnCall = document.createElement("button");
-        btnCall.textContent = "Llamar";
-        btnCall.className = "btn-llamar";
-        btnCall.onclick = () => llamarPasajero(p.codigo);
-        const btnStop = document.createElement("button");
-        btnStop.textContent = "Finalizar";
-        btnStop.className = "btn-stop";
-        btnStop.onclick = () => detenerLlamada(p.codigo);
-        li.append(btnCall, btnStop);
+
+        const b1 = document.createElement("button");
+        b1.textContent = "Llamar";
+        b1.className = "btn-llamar";
+        b1.onclick = () => llamarPasajero(p.codigo);
+
+        const b2 = document.createElement("button");
+        b2.textContent = "Finalizar";
+        b2.className = "btn-stop";
+        b2.onclick = () => detenerLlamada(p.codigo);
+
+        li.append(b1, b2);
         ul.appendChild(li);
     });
 }
 
-// RENDER HISTORIAL
 function renderHistorial(){
     const ul = document.getElementById("historial");
     ul.innerHTML = "";
@@ -238,33 +250,34 @@ function renderHistorial(){
     });
 }
 
-// EXCEL
+// ===== EXCEL =====
 function exportarExcel(){
     if(historial.length === 0) return alert("No hay datos para exportar.");
     const wb = XLSX.utils.book_new();
-    const tipos = ["Aeromexico","Platinum","Centurion"];
-    tipos.forEach(tipo => {
-        const data = historial.filter(h => h.tipo === tipo);
-        if(data.length){
-            const ws = XLSX.utils.json_to_sheet(data);
-            XLSX.utils.book_append_sheet(wb, ws, tipo);
+    ["Aeromexico","Platinum","Centurion"].forEach(t => {
+        const d = historial.filter(h => h.tipo === t);
+        if(d.length){
+            const ws = XLSX.utils.json_to_sheet(d);
+            XLSX.utils.book_append_sheet(wb, ws, t);
         }
     });
-    const fecha = new Date().toISOString().slice(0,10);
-    XLSX.writeFile(wb, `historial_lista_espera_${fecha}.xlsx`);
+    XLSX.writeFile(wb, `historial_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
-// BORRAR HISTORIAL
+// ===== BORRAR =====
 function borrarHistorial(){
-    if(!confirm("¿Seguro que deseas borrar TODO el historial?")) return;
-    historial = []; localStorage.setItem("historial", "[]"); renderHistorial();
+    if(!confirm("¿Borrar todo el historial?")) return;
+    historial = [];
+    localStorage.setItem("historial","[]");
+    renderHistorial();
 }
 
-// PANTALLA
+// ===== PANTALLA =====
 document.getElementById("btnPantalla").addEventListener("click", () => {
-   window.open("pantalla.html", "_blank");
+    window.open("pantalla.html", "_blank");
 });
 </script>
 
 </body>
 </html>
+
