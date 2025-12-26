@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -63,7 +64,6 @@ li.centurion { background: #ffd6a5; }
   min="1"
   step="1"
   inputmode="numeric"
-  onkeydown="return (event.key >= '0' && event.key <= '9') || ['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(event.key)"
 >
 
 <select id="tipo">
@@ -72,10 +72,10 @@ li.centurion { background: #ffd6a5; }
   <option value="Centurion">Centurion</option>
 </select>
 <br>
+
 <button id="btnAgregar">Agregar</button>
 <button id="btnPantalla">📺 Pantalla</button>
 
-<!-- TOGGLE TICKET -->
 <div style="margin-top:10px;">
     <label style="font-weight:bold;">
         <input type="checkbox" id="toggleTicket">
@@ -100,6 +100,13 @@ li.centurion { background: #ffd6a5; }
 <audio id="sonidoLlamado" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
+// ===== JERARQUÍA =====
+const jerarquia = {
+    "Centurion": 1,
+    "Platinum": 2,
+    "Aeromexico": 3
+};
+
 // ===== STORAGE =====
 let totalPersonas = Number(localStorage.getItem("totalPersonas")) || 0;
 let historial = JSON.parse(localStorage.getItem("historial")) || [];
@@ -123,26 +130,27 @@ renderHistorial();
 // ===== AGREGAR =====
 document.getElementById("btnAgregar").addEventListener("click", () => {
     const nombre = document.getElementById("nombre").value.trim();
-    const pasajerosInput = document.getElementById("pasajeros").value.trim();
+    const pasajeros = Number(document.getElementById("pasajeros").value);
     const tipo = document.getElementById("tipo").value;
 
-    if (!nombre) return alert("Ingrese el nombre del pasajero.");
-    if (!/^[1-9][0-9]*$/.test(pasajerosInput))
-        return alert("Ingrese solo números enteros mayores a 0.");
+    if (!nombre || pasajeros <= 0) {
+        alert("Complete correctamente los datos");
+        return;
+    }
 
-    const pasajeros = Number(pasajerosInput);
     const codigo = "AE-" + codigoCounter.toString().padStart(4,"0");
     codigoCounter++;
     localStorage.setItem("codigoCounter", codigoCounter);
 
     const pasajero = {
-        codigo, nombre, pasajeros, tipo,
-        horaRegistro: new Date().toLocaleString()
+        codigo,
+        nombre,
+        pasajeros,
+        tipo,
+        horaRegistro: new Date().toISOString()
     };
 
-    if (imprimirTicket) {
-        imprimirTicketPasajero(pasajero);
-    }
+    if (imprimirTicket) imprimirTicketPasajero(pasajero);
 
     listaEspera.push(pasajero);
     localStorage.setItem("listaEspera", JSON.stringify(listaEspera));
@@ -158,29 +166,19 @@ document.getElementById("btnAgregar").addEventListener("click", () => {
 
 // ===== IMPRIMIR TICKET =====
 function imprimirTicketPasajero(p) {
-    const v = window.open("", "PRINT", "width=300,height=400");
+    const v = window.open("", "", "width=300,height=400");
     v.document.write(`
-        <html><head>
-        <title>Ticket</title>
-        <style>
-            body{font-family:monospace;text-align:center;}
-            h2{margin:5px 0;}
-            hr{margin:10px 0;}
-        </style>
-        </head>
-        <body>
-            <h2>LISTA DE ESPERA</h2>
-            <hr>
-            <p><strong>${p.codigo}</strong></p>
-            <p>${p.nombre}</p>
-            <p>${p.pasajeros} pasajeros</p>
-            <p>${p.tipo}</p>
-            <hr>
-            <p>${p.horaRegistro}</p>
+        <html><body style="font-family:monospace;text-align:center">
+        <h2>LISTA DE ESPERA</h2><hr>
+        <p><strong>${p.codigo}</strong></p>
+        <p>${p.nombre}</p>
+        <p>${p.pasajeros} pasajeros</p>
+        <p>${p.tipo}</p>
+        <hr>
+        <p>${new Date(p.horaRegistro).toLocaleString()}</p>
         </body></html>
     `);
     v.document.close();
-    v.focus();
     v.print();
     v.close();
 }
@@ -210,9 +208,6 @@ function detenerLlamada(codigo){
     localStorage.setItem("totalPersonas", totalPersonas);
     document.getElementById("total").textContent = totalPersonas;
 
-    localStorage.setItem("llamadaActiva", "null");
-    localStorage.setItem("actualizarPantalla", Date.now());
-
     renderLista();
     renderHistorial();
 }
@@ -221,7 +216,15 @@ function detenerLlamada(codigo){
 function renderLista(){
     const ul = document.getElementById("lista");
     ul.innerHTML = "";
-    listaEspera.forEach(p => {
+
+    const ordenada = [...listaEspera].sort((a,b)=>{
+        if(jerarquia[a.tipo] !== jerarquia[b.tipo]){
+            return jerarquia[a.tipo] - jerarquia[b.tipo];
+        }
+        return new Date(a.horaRegistro) - new Date(b.horaRegistro);
+    });
+
+    ordenada.forEach(p=>{
         const li = document.createElement("li");
         li.className = p.tipo.toLowerCase();
         li.innerHTML = `<strong>${p.codigo}</strong> — ${p.nombre} — ${p.pasajeros} pax — ${p.tipo}`;
@@ -229,14 +232,14 @@ function renderLista(){
         const b1 = document.createElement("button");
         b1.textContent = "Llamar";
         b1.className = "btn-llamar";
-        b1.onclick = () => llamarPasajero(p.codigo);
+        b1.onclick = ()=>llamarPasajero(p.codigo);
 
         const b2 = document.createElement("button");
         b2.textContent = "Finalizar";
         b2.className = "btn-stop";
-        b2.onclick = () => detenerLlamada(p.codigo);
+        b2.onclick = ()=>detenerLlamada(p.codigo);
 
-        li.append(b1, b2);
+        li.append(b1,b2);
         ul.appendChild(li);
     });
 }
@@ -244,41 +247,41 @@ function renderLista(){
 function renderHistorial(){
     const ul = document.getElementById("historial");
     ul.innerHTML = "";
-    historial.forEach(h => {
+    historial.forEach(h=>{
         const li = document.createElement("li");
-        li.innerHTML = `<strong>${h.codigo}</strong> — ${h.nombre} — ${h.pasajeros} pax — ${h.tipo}`;
+        li.textContent = `${h.codigo} — ${h.nombre} — ${h.pasajeros} pax — ${h.tipo}`;
         ul.appendChild(li);
     });
 }
 
 // ===== EXCEL =====
 function exportarExcel(){
-    if(historial.length === 0) return alert("No hay datos para exportar.");
+    if(!historial.length) return alert("No hay datos");
     const wb = XLSX.utils.book_new();
-    ["Aeromexico","Platinum","Centurion"].forEach(t => {
-        const d = historial.filter(h => h.tipo === t);
+    ["Centurion","Platinum","Aeromexico"].forEach(t=>{
+        const d = historial.filter(h=>h.tipo===t);
         if(d.length){
             const ws = XLSX.utils.json_to_sheet(d);
             XLSX.utils.book_append_sheet(wb, ws, t);
         }
     });
-    XLSX.writeFile(wb, `historial_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(wb,"historial.xlsx");
 }
 
 // ===== BORRAR =====
 function borrarHistorial(){
-    if(!confirm("¿Borrar todo el historial?")) return;
-    historial = [];
-    localStorage.setItem("historial","[]");
-    renderHistorial();
+    if(confirm("¿Borrar historial?")){
+        historial=[];
+        localStorage.setItem("historial","[]");
+        renderHistorial();
+    }
 }
 
 // ===== PANTALLA =====
-document.getElementById("btnPantalla").addEventListener("click", () => {
-    window.open("pantalla.html", "_blank");
-});
+document.getElementById("btnPantalla").onclick=()=>{
+    window.open("pantalla.html","_blank");
+};
 </script>
 
 </body>
 </html>
-
