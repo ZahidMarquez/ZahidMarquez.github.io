@@ -1,11 +1,137 @@
-﻿<!DOCTYPE html>
+
+
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Pantalla</title>
-<link rel="stylesheet" href="estilos.css">
+
+<style>
+/* ESTILO GENERAL */
+body {
+  background: linear-gradient(135deg, #ffd6e0, #d0f0fd);
+  color: #333;
+  font-family: 'Poppins', sans-serif;
+  padding: 30px;
+  overflow-x: hidden;
+}
+
+/* TÍTULO (MÁS GRANDE PARA TV) */
+h1 {
+  text-align: center;
+  font-size: 64px;
+  margin-bottom: 40px;
+  color: #555;
+  text-shadow: 2px 2px 6px rgba(255,255,255,0.6);
+}
+
+/* TABLA SIN FONDO */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 32px; /* letras grandes */
+  border-radius: 0;
+  background: transparent;
+}
+
+th, td {
+  padding: 22px;
+  text-align: left;
+  background: transparent;
+}
+
+/* ENCABEZADO */
+th {
+  font-weight: 700;
+  color: #333;
+  text-shadow: 1px 1px 3px rgba(255,255,255,0.7);
+}
+
+/* FILAS */
+tbody tr {
+  background: transparent;
+  transition: 0.3s ease;
+}
+
+tbody tr:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* LLAMADA GRANDE */
+#llamada-box {
+  display: none;
+  text-align: center;
+  margin-top: 80px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+#llamada-box h2 {
+  font-size: 72px;
+  margin-bottom: 30px;
+  color: #ffb347;
+  text-shadow: 3px 3px 8px rgba(255,255,255,0.7);
+}
+
+/* SPLIT FLAP */
+@keyframes flip {
+  0% { transform: rotateX(90deg); opacity: 0; }
+  50% { transform: rotateX(-20deg); opacity: 1; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+span {
+  display: inline-block;
+  animation: flip 0.5s;
+}
+
+/* FADE */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* BOTÓN FULLSCREEN */
+#btn-fullscreen {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: #ffb347;
+  border: none;
+  padding: 20px 26px;
+  font-size: 26px;
+  border-radius: 50px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transition: 0.3s ease;
+  z-index: 9999;
+}
+
+#btn-fullscreen:hover {
+  background: #ffa726;
+  transform: scale(1.08);
+}
+
+.fullscreen-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ZONA HOVER FULLSCREEN */
+#fs-hover-zone {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 160px;
+  height: 160px;
+  z-index: 50;
+}
+</style>
 </head>
+
 <body>
+
 <h1>✈ LISTA DE ESPERA</h1>
 
 <div id="llamada-box"></div>
@@ -23,19 +149,110 @@
 </table>
 
 <div id="fs-hover-zone"></div>
+
 <button id="btn-fullscreen">⛶</button>
 
 <audio id="sonidoPantalla" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-<script>
-function splitFlap(text){return text.split("").map(l=>`<span>${l}</span>`).join("");}
-function renderLista(lista){const tbody=document.getElementById("tabla-aire");tbody.innerHTML="";lista.forEach(p=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${p.codigo}</td><td>${p.nombre}</td><td>${p.pasajeros}</td><td>${p.horaRegistro}</td>`;tbody.appendChild(tr);});}
-function renderLlamada(p){const box=document.getElementById("llamada-box");const tabla=document.getElementById("tabla");if(!p){box.style.display="none";tabla.style.display="table";return;}tabla.style.display="none";box.style.display="block";box.innerHTML=`<h2>${splitFlap("LLAMANDO")}</h2><div style="font-size:60px;font-weight:bold;">${splitFlap(p.codigo)}</div><div style="font-size:45px;">${splitFlap(p.nombre)}</div><div style="font-size:36px;margin-top:15px;">${splitFlap(p.pasajeros + " PAX")}</div>`;const audio=document.getElementById("sonidoPantalla");audio.currentTime=0;audio.play();}
-let oldLista="",oldLlamada="";
-setInterval(()=>{const listaRaw=localStorage.getItem("listaEspera");const llamadaRaw=localStorage.getItem("llamadaActiva");if(listaRaw!==oldLista){oldLista=listaRaw;renderLista(JSON.parse(listaRaw)||[]);}if(llamadaRaw!==oldLlamada){oldLlamada=llamadaRaw;renderLlamada(JSON.parse(llamadaRaw));}},500);
 
-/* Fullscreen */
-const btnFullscreen=document.getElementById("btn-fullscreen");
-btnFullscreen.onclick=()=>document.documentElement.requestFullscreen();
+<script>
+// SPLIT FLAP
+function splitFlap(text) {
+  return text.split("").map(l => `<span>${l}</span>`).join("");
+}
+
+// RENDER LISTA
+function renderLista(lista) {
+  const tbody = document.getElementById("tabla-aire");
+  tbody.innerHTML = "";
+
+  lista.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.codigo}</td>
+      <td>${p.nombre}</td>
+      <td>${p.pasajeros}</td>
+      <td>${p.horaRegistro}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// RENDER LLAMADA
+function renderLlamada(p) {
+  const box = document.getElementById("llamada-box");
+  const tabla = document.getElementById("tabla");
+
+  if (!p) {
+    box.style.display = "none";
+    tabla.style.display = "table";
+    return;
+  }
+
+  tabla.style.display = "none";
+  box.style.display = "block";
+
+  box.innerHTML = `
+    <h2>${splitFlap("LLAMANDO")}</h2>
+    <div style="font-size:96px;font-weight:bold;">${splitFlap(p.codigo)}</div>
+    <div style="font-size:72px;">${splitFlap(p.nombre)}</div>
+    <div style="font-size:56px;margin-top:20px;">
+      ${splitFlap(p.pasajeros + " PAX")}
+    </div>
+  `;
+
+  const audio = document.getElementById("sonidoPantalla");
+  audio.currentTime = 0;
+  audio.play();
+}
+
+let oldLista = "";
+let oldLlamada = "";
+
+setInterval(() => {
+  const listaRaw = localStorage.getItem("listaEspera");
+  const llamadaRaw = localStorage.getItem("llamadaActiva");
+
+  if (listaRaw !== oldLista) {
+    oldLista = listaRaw;
+    renderLista(JSON.parse(listaRaw) || []);
+  }
+
+  if (llamadaRaw !== oldLlamada) {
+    oldLlamada = llamadaRaw;
+    renderLlamada(JSON.parse(llamadaRaw));
+  }
+}, 500);
+
+/* FULLSCREEN */
+const btnFullscreen = document.getElementById("btn-fullscreen");
+const fsHoverZone = document.getElementById("fs-hover-zone");
+
+btnFullscreen.addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  btnFullscreen.classList.toggle(
+    "fullscreen-hidden",
+    !!document.fullscreenElement
+  );
+});
+
+fsHoverZone.addEventListener("mousemove", () => {
+  if (document.fullscreenElement) {
+    btnFullscreen.classList.remove("fullscreen-hidden");
+    setTimeout(() => {
+      if (document.fullscreenElement) {
+        btnFullscreen.classList.add("fullscreen-hidden");
+      }
+    }, 2000);
+  }
+});
 </script>
+
 </body>
 </html>
