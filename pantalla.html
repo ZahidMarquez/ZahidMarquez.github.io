@@ -1,6 +1,5 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
+
+<html lang="es"><head>
 <meta charset="UTF-8">
 <title>Pantalla</title>
 
@@ -132,9 +131,9 @@ span {
 
 <h1>✈ LISTA DE ESPERA</h1>
 
-<div id="llamada-box"></div>
+<div id="llamada-box" style="display: none;"></div>
 
-<table id="tabla">
+<table id="tabla" style="display: table;">
   <thead>
     <tr>
       <th>CÓDIGO</th>
@@ -143,12 +142,32 @@ span {
       <th>REGISTRO</th>
     </tr>
   </thead>
-  <tbody id="tabla-aire"></tbody>
+  <tbody id="tabla-aire"><tr>
+      <td>AE-0034</td>
+      <td>lucas</td>
+      <td>1</td>
+      <td>2025-12-26T20:20:24.996Z</td>
+    </tr><tr>
+      <td>AE-0035</td>
+      <td>pedro</td>
+      <td>2</td>
+      <td>2025-12-26T20:20:37.945Z</td>
+    </tr><tr>
+      <td>AE-0036</td>
+      <td>ldldld</td>
+      <td>2</td>
+      <td>2025-12-26T20:22:31.624Z</td>
+    </tr><tr>
+      <td>AE-0037</td>
+      <td>krkrkr</td>
+      <td>3</td>
+      <td>2025-12-26T20:22:42.109Z</td>
+    </tr></tbody>
 </table>
 
 <div id="fs-hover-zone"></div>
 
-<button id="btn-fullscreen">⛶</button>
+<button id="btn-fullscreen" class="">⛶</button>
 
 <audio id="sonidoPantalla" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -252,6 +271,6 @@ fsHoverZone.addEventListener("mousemove", () => {
 });
 </script>
 
-</body>
-</html>
 
+
+</body></html>
