@@ -1,76 +1,80 @@
+
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Pantalla</title>
+
 <style>
-/* Estilo general */
+/* ESTILO GENERAL */
 body {
   background: linear-gradient(135deg, #ffd6e0, #d0f0fd);
   color: #333;
   font-family: 'Poppins', sans-serif;
-  padding: 20px;
+  padding: 30px;
   overflow-x: hidden;
 }
 
-/* Título */
+/* TÍTULO (MÁS GRANDE PARA TV) */
 h1 {
   text-align: center;
-  font-size: 48px;
-  margin-bottom: 30px;
+  font-size: 64px;
+  margin-bottom: 40px;
   color: #555;
-  text-shadow: 1px 1px 4px rgba(255,255,255,0.5);
+  text-shadow: 2px 2px 6px rgba(255,255,255,0.6);
 }
 
-/* Tabla */
+/* TABLA SIN FONDO */
 table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 22px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  font-size: 32px; /* letras grandes */
+  border-radius: 0;
+  background: transparent;
 }
 
 th, td {
-  padding: 15px;
+  padding: 22px;
   text-align: left;
+  background: transparent;
 }
 
+/* ENCABEZADO */
 th {
-  background: rgba(255, 255, 255, 0.6);
-  font-weight: 600;
-  color: #555;
+  font-weight: 700;
+  color: #333;
+  text-shadow: 1px 1px 3px rgba(255,255,255,0.7);
 }
 
+/* FILAS */
 tbody tr {
-  background: rgba(255, 255, 255, 0.4);
-  transition: all 0.3s ease;
+  background: transparent;
+  transition: 0.3s ease;
 }
 
 tbody tr:hover {
-  background: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  transform: scale(1.02);
+  background: rgba(255,255,255,0.2);
 }
 
-/* Llamada grande */
+/* LLAMADA GRANDE */
 #llamada-box {
   display: none;
   text-align: center;
-  margin-top: 50px;
+  margin-top: 80px;
   animation: fadeIn 0.5s ease-in-out;
 }
 
 #llamada-box h2 {
-  font-size: 50px;
-  margin-bottom: 20px;
+  font-size: 72px;
+  margin-bottom: 30px;
   color: #ffb347;
-  text-shadow: 2px 2px 6px rgba(255,255,255,0.7);
+  text-shadow: 3px 3px 8px rgba(255,255,255,0.7);
 }
 
-/* Animación split flap */
+/* SPLIT FLAP */
 @keyframes flip {
   0% { transform: rotateX(90deg); opacity: 0; }
   50% { transform: rotateX(-20deg); opacity: 1; }
@@ -82,7 +86,7 @@ span {
   animation: flip 0.5s;
 }
 
-/* Fade in */
+/* FADE */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
@@ -91,43 +95,42 @@ span {
 /* BOTÓN FULLSCREEN */
 #btn-fullscreen {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 25px;
+  right: 25px;
   background: #ffb347;
   border: none;
-  padding: 15px 20px;
-  font-size: 20px;
+  padding: 20px 26px;
+  font-size: 26px;
   border-radius: 50px;
   color: white;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
   transition: 0.3s ease;
   z-index: 9999;
 }
 
 #btn-fullscreen:hover {
   background: #ffa726;
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
-/* Ocultar botón en fullscreen */
 .fullscreen-hidden {
   opacity: 0 !important;
   pointer-events: none !important;
 }
 
-/* Zona invisible para detectar mouse en fullscreen */
+/* ZONA HOVER FULLSCREEN */
 #fs-hover-zone {
   position: fixed;
   bottom: 0;
   right: 0;
-  width: 140px;
-  height: 140px;
+  width: 160px;
+  height: 160px;
   z-index: 50;
-  pointer-events: auto;
 }
 </style>
 </head>
+
 <body>
 
 <h1>✈ LISTA DE ESPERA</h1>
@@ -146,23 +149,19 @@ span {
   <tbody id="tabla-aire"></tbody>
 </table>
 
-<!-- Zona invisible que detecta hover -->
 <div id="fs-hover-zone"></div>
 
-<!-- Botón fullscreen -->
 <button id="btn-fullscreen">⛶</button>
 
 <audio id="sonidoPantalla" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
-// Split flap animación
+// SPLIT FLAP
 function splitFlap(text) {
-  return text.split("")
-    .map(l => `<span>${l}</span>`)
-    .join("");
+  return text.split("").map(l => `<span>${l}</span>`).join("");
 }
 
-// Render lista normal
+// RENDER LISTA
 function renderLista(lista) {
   const tbody = document.getElementById("tabla-aire");
   tbody.innerHTML = "";
@@ -179,7 +178,7 @@ function renderLista(lista) {
   });
 }
 
-// Render llamada en grande
+// RENDER LLAMADA
 function renderLlamada(p) {
   const box = document.getElementById("llamada-box");
   const tabla = document.getElementById("tabla");
@@ -195,9 +194,11 @@ function renderLlamada(p) {
 
   box.innerHTML = `
     <h2>${splitFlap("LLAMANDO")}</h2>
-    <div style="font-size:60px;font-weight:bold;">${splitFlap(p.codigo)}</div>
-    <div style="font-size:45px;">${splitFlap(p.nombre)}</div>
-    <div style="font-size:36px;margin-top:15px;">${splitFlap(p.pasajeros + " PAX")}</div>
+    <div style="font-size:96px;font-weight:bold;">${splitFlap(p.codigo)}</div>
+    <div style="font-size:72px;">${splitFlap(p.nombre)}</div>
+    <div style="font-size:56px;margin-top:20px;">
+      ${splitFlap(p.pasajeros + " PAX")}
+    </div>
   `;
 
   const audio = document.getElementById("sonidoPantalla");
@@ -219,32 +220,27 @@ setInterval(() => {
 
   if (llamadaRaw !== oldLlamada) {
     oldLlamada = llamadaRaw;
-    const llamada = JSON.parse(llamadaRaw);
-    renderLlamada(llamada);
+    renderLlamada(JSON.parse(llamadaRaw));
   }
 }, 500);
 
-
-/* --- FULLSCREEN CONTROL (CORREGIDO) --- */
+/* FULLSCREEN */
 const btnFullscreen = document.getElementById("btn-fullscreen");
 const fsHoverZone = document.getElementById("fs-hover-zone");
 
 btnFullscreen.addEventListener("click", () => {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.error("Error al intentar fullscreen:", err);
-    });
+    document.documentElement.requestFullscreen();
   } else {
     document.exitFullscreen();
   }
 });
 
 document.addEventListener("fullscreenchange", () => {
-  if (document.fullscreenElement) {
-    btnFullscreen.classList.add("fullscreen-hidden");
-  } else {
-    btnFullscreen.classList.remove("fullscreen-hidden");
-  }
+  btnFullscreen.classList.toggle(
+    "fullscreen-hidden",
+    !!document.fullscreenElement
+  );
 });
 
 fsHoverZone.addEventListener("mousemove", () => {
@@ -261,4 +257,3 @@ fsHoverZone.addEventListener("mousemove", () => {
 
 </body>
 </html>
-
