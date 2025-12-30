@@ -59,11 +59,26 @@ li {
     margin: 4px 0;
     font-weight: bold;
 }
+
+/* Ticket para impresión */
+.ticket-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 250px;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 0 auto;
+}
+.ticket-centurion { border: 2px solid #ffd6a5; }
+.ticket-platinum { border: 2px solid #d6cadd; }
+.ticket-aeromexico { border: 2px solid #a8dadc; }
+.ticket-container img { width: 100px; margin-bottom: 10px; }
+.ticket-container h3 { margin: 5px 0; }
+.ticket-container p { margin: 3px 0; font-size: 14px; }
 </style>
 </head>
 
 <body>
-
 
 <!-- RESUMEN -->
 <div id="resumen">
@@ -117,14 +132,22 @@ li {
 
 <audio id="sonidoLlamado" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
+<!-- Ticket oculto -->
+<div id="ticket" style="display:none;">
+  <div class="ticket-container" id="ticketContent">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" alt="Logo">
+    <h3>🎫 Ticket de Registro</h3>
+    <p><b>Código:</b> <span id="ticketCodigo"></span></p>
+    <p><b>Nombre:</b> <span id="ticketNombre"></span></p>
+    <p><b>Pasajeros:</b> <span id="ticketPasajeros"></span></p>
+    <p><b>Tipo:</b> <span id="ticketTipo"></span></p>
+    <p><b>Hora:</b> <span id="ticketHora"></span></p>
+  </div>
+</div>
+
 <script>
-
-
-
 // ================== JERARQUÍA ==================
 const jerarquia = { Centurion:1, Platinum:2, Aeromexico:3 };
-
-
 
 // ================== STORAGE ==================
 let listaEspera = JSON.parse(localStorage.getItem("listaEspera")) || [];
@@ -132,8 +155,6 @@ let historial = JSON.parse(localStorage.getItem("historial")) || [];
 let totalPersonas = Number(localStorage.getItem("totalPersonas")) || 0;
 let codigoCounter = Number(localStorage.getItem("codigoCounter")) || 1;
 let imprimirTicket = localStorage.getItem("imprimirTicket") === "true";
-
-
 
 // ================== INPUTS ==================
 const nombreInput = document.getElementById("nombre");
@@ -147,15 +168,11 @@ renderLista();
 renderHistorial();
 actualizarResumen();
 
-
-
 // ================== TOGGLE HISTORIAL ==================
 function toggleHistorial(tipo){
     const ul = document.getElementById(`historial-${tipo}`);
     ul.style.display = ul.style.display === "none" ? "block" : "none";
 }
-
-
 
 // ================== AGREGAR ==================
 document.getElementById("btnAgregar").onclick = () => {
@@ -186,9 +203,41 @@ document.getElementById("btnAgregar").onclick = () => {
 
     nombreInput.value = "";
     pasajerosInput.value = "";
+
+    // Actualizar storage de checkbox
+    imprimirTicket = document.getElementById("toggleTicket").checked;
+    localStorage.setItem("imprimirTicket", imprimirTicket);
+
+    // ✅ Imprimir ticket automáticamente si está activado
+    if (imprimirTicket) {
+        imprimirTicketConLogo(pasajero);
+    }
 };
 
+// ================== FUNCION IMPRESION ==================
+function imprimirTicketConLogo(pasajero){
+    const ticketDiv = document.getElementById("ticketContent");
 
+    ticketDiv.className = "ticket-container"; // reset
+    // Cambiar borde según tipo
+    if(pasajero.tipo === "Centurion") ticketDiv.classList.add("ticket-centurion");
+    else if(pasajero.tipo === "Platinum") ticketDiv.classList.add("ticket-platinum");
+    else ticketDiv.classList.add("ticket-aeromexico");
+
+    // Llenar datos
+    document.getElementById("ticketCodigo").textContent = pasajero.codigo;
+    document.getElementById("ticketNombre").textContent = pasajero.nombre;
+    document.getElementById("ticketPasajeros").textContent = pasajero.pasajeros;
+    document.getElementById("ticketTipo").textContent = pasajero.tipo;
+    document.getElementById("ticketHora").textContent = new Date(pasajero.horaRegistro).toLocaleTimeString();
+
+    // Abrir ventana de impresión
+    const ticketContent = ticketDiv.outerHTML;
+    const newWin = window.open("", "_blank");
+    newWin.document.write(`<html><head><title>Ticket</title></head><body>${ticketContent}</body></html>`);
+    newWin.document.close();
+    newWin.print();
+}
 
 // ================== LLAMAR ==================
 function llamarPasajero(codigo){
@@ -198,8 +247,6 @@ function llamarPasajero(codigo){
     document.getElementById("sonidoLlamado").play();
 }
 
-
-
 // ================== FINALIZAR ==================
 function detenerLlamada(codigo){
     const idx = listaEspera.findIndex(p => p.codigo === codigo);
@@ -207,11 +254,7 @@ function detenerLlamada(codigo){
 
     const p = listaEspera.splice(idx, 1)[0];
 
-
-
-    // GARANTIZA horaLlamado
     p.horaLlamado = p.horaLlamado || Date.now();
-
     historial.push(p);
     totalPersonas -= p.pasajeros;
 
@@ -221,10 +264,9 @@ function detenerLlamada(codigo){
     actualizarResumen();
 }
 
-
-
 // ================== RENDER LISTA ==================
 function renderLista(){
+    const lista = document.getElementById("lista");
     lista.innerHTML = "";
     [...listaEspera]
         .sort((a,b)=>jerarquia[a.tipo]-jerarquia[b.tipo] || a.horaRegistro-b.horaRegistro)
@@ -247,10 +289,8 @@ function renderLista(){
             lista.appendChild(li);
         });
 
-    total.textContent = totalPersonas;
+    document.getElementById("total").textContent = totalPersonas;
 }
-
-
 
 // ================== HISTORIAL ==================
 function renderHistorial(){
@@ -266,8 +306,6 @@ function renderHistorial(){
     actualizarTiempo();
 }
 
-
-
 // ================== RESUMEN ==================
 function actualizarResumen(){
     [["Centurion","CENT"],["Platinum","PLAT"],["Aeromexico","AERO"]]
@@ -278,21 +316,16 @@ function actualizarResumen(){
     });
 }
 
-
-
 // ================== TIEMPO ==================
 function actualizarTiempo(){
     const tiempos = historial
         .filter(h=>h.horaLlamado)
         .map(h=>(h.horaLlamado-h.horaRegistro)/60000);
 
-    if (!tiempos.length) return;
-
-    tiempoEspera.textContent =
-        `${Math.round(tiempos.reduce((a,b)=>a+b,0)/tiempos.length)} minutos`;
+    tiempoEspera.textContent = tiempos.length
+        ? `${Math.round(tiempos.reduce((a,b)=>a+b,0)/tiempos.length)} minutos`
+        : "0 minutos";
 }
-
-
 
 // ================== GUARDAR ==================
 function guardar(){
@@ -301,8 +334,6 @@ function guardar(){
     localStorage.setItem("totalPersonas", totalPersonas);
     localStorage.setItem("codigoCounter", codigoCounter);
 }
-
-
 
 // ================== EXCEL ==================
 function exportarExcel(){
@@ -320,8 +351,6 @@ function exportarExcel(){
     XLSX.writeFile(wb,"historial.xlsx");
 }
 
-
-
 // ================== BORRAR ==================
 function borrarHistorial(){
     if (confirm("¿Borrar historial?")) {
@@ -331,8 +360,6 @@ function borrarHistorial(){
     }
 }
 
-
-
 // ================== PANTALLA ==================
 document.getElementById("btnPantalla").onclick = () => {
     window.open("pantalla.html", "_blank");
@@ -341,4 +368,5 @@ document.getElementById("btnPantalla").onclick = () => {
 
 </body>
 </html>
+
 
