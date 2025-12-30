@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -39,6 +40,7 @@ li {
 
 .btn-llamar { background: #90dbf4; border:none; margin-left:5px; }
 .btn-stop   { background: #ffadad; border:none; margin-left:5px; }
+.btn-retirado { background: #cccccc; border:none; margin-left:5px; }
 
 .exportar { background: #bde0fe; }
 .borrar   { background: #ffc8dd; }
@@ -60,7 +62,7 @@ li {
 
 /* TICKET OCULTO */
 #ticket {
-    display: none; /* Oculto en página principal */
+    display: none;
     width: 250px; 
     padding: 10px; 
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -205,25 +207,18 @@ document.getElementById("btnAgregar").onclick = () => {
     nombreInput.value = "";
     pasajerosInput.value = "";
 
-    // ✅ Imprimir ticket si está activado
     if (document.getElementById("toggleTicket").checked) {
         const ticketDiv = document.getElementById("ticket");
-
-        // Colores por tipo
         switch(pasajero.tipo){
             case "Centurion": ticketDiv.style.border = "2px solid #ffd6a5"; break;
             case "Platinum": ticketDiv.style.border = "2px solid #d6cadd"; break;
             case "Aeromexico": ticketDiv.style.border = "2px solid #a8dadc"; break;
         }
-
-        // Rellenar datos
         document.getElementById("ticketCodigo").textContent = pasajero.codigo;
         document.getElementById("ticketNombre").textContent = pasajero.nombre;
         document.getElementById("ticketPasajeros").textContent = pasajero.pasajeros;
         document.getElementById("ticketTipo").textContent = pasajero.tipo;
         document.getElementById("ticketHora").textContent = new Date(pasajero.horaRegistro).toLocaleTimeString();
-
-        // Abrir ventana de impresión
         const ticketContent = ticketDiv.innerHTML;
         const newWin = window.open("", "_blank");
         newWin.document.write(`<html><head><title>Ticket</title></head><body style="text-align:center;">${ticketContent}</body></html>`);
@@ -238,6 +233,19 @@ function llamarPasajero(codigo){
     if (!p) return;
     p.horaLlamado = Date.now();
     document.getElementById("sonidoLlamado").play();
+
+    const li = [...lista.children].find(li => li.textContent.includes(codigo));
+    if(li){
+        li.style.backgroundColor = "#fffa65";
+        li.style.transition = "background-color 0.5s";
+        setTimeout(() => {
+            switch(p.tipo){
+                case "Centurion": li.style.backgroundColor = "#ffd6a5"; break;
+                case "Platinum": li.style.backgroundColor = "#d6cadd"; break;
+                case "Aeromexico": li.style.backgroundColor = "#a8dadc"; break;
+            }
+        }, 1500);
+    }
 }
 
 // ================== FINALIZAR ==================
@@ -247,6 +255,25 @@ function detenerLlamada(codigo){
 
     const p = listaEspera.splice(idx, 1)[0];
     p.horaLlamado = p.horaLlamado || Date.now();
+    p.retirado = false;
+
+    historial.push(p);
+    totalPersonas -= p.pasajeros;
+
+    guardar();
+    renderLista();
+    renderHistorial();
+    actualizarResumen();
+}
+
+// ================== RETIRADO ==================
+function retirado(codigo){
+    const idx = listaEspera.findIndex(p => p.codigo === codigo);
+    if (idx < 0) return;
+
+    const p = listaEspera.splice(idx, 1)[0];
+    p.horaLlamado = p.horaLlamado || Date.now();
+    p.retirado = true;
 
     historial.push(p);
     totalPersonas -= p.pasajeros;
@@ -277,7 +304,12 @@ function renderLista(){
             b2.className = "btn-stop";
             b2.onclick = ()=>detenerLlamada(p.codigo);
 
-            li.append(b1,b2);
+            const b3 = document.createElement("button");
+            b3.textContent = "Retirado";
+            b3.className = "btn-retirado";
+            b3.onclick = ()=>retirado(p.codigo);
+
+            li.append(b1,b2,b3);
             lista.appendChild(li);
         });
 
@@ -291,7 +323,7 @@ function renderHistorial(){
         ul.innerHTML = "";
         historial.filter(h=>h.tipo===t).forEach(h=>{
             const li = document.createElement("li");
-            li.textContent = `${h.codigo} — ${h.nombre} (${h.pasajeros} pax)`;
+            li.textContent = `${h.codigo} — ${h.nombre} (${h.pasajeros} pax)${h.retirado?" (Retirado)":""}`;
             ul.appendChild(li);
         });
     });
@@ -327,12 +359,38 @@ function guardar(){
     localStorage.setItem("codigoCounter", codigoCounter);
 }
 
+// ================== FUNCIÓN FORMATEAR TIEMPO ==================
+function formatoTiempo(ms){
+    const totalSegundos = Math.floor(ms/1000);
+    const h = Math.floor(totalSegundos/3600);
+    const m = Math.floor((totalSegundos%3600)/60);
+    const s = totalSegundos%60;
+    return `${h}h ${m}m ${s}s`;
+}
+
 // ================== EXCEL ==================
 function exportarExcel(){
     const wb = XLSX.utils.book_new();
     ["Centurion","Platinum","Aeromexico"].forEach(t=>{
-        const d = historial.filter(h=>h.tipo===t);
-        if (d.length) {
+        const d = historial
+            .filter(h=>h.tipo===t)
+            .map(h=>{
+                const tiempoEspera = h.horaLlamado ? formatoTiempo(h.horaLlamado - h.horaRegistro) : "";
+                return {
+                    Codigo: h.codigo,
+                    Nombre: h.nombre,
+                    Pasajeros: h.pasajeros,
+                    Tipo: h.tipo,
+                    Retirado: h.retirado ? "Sí" : "No",
+                    FechaRegistro: new Date(h.horaRegistro).toLocaleDateString(),
+                    HoraRegistro: new Date(h.horaRegistro).toLocaleTimeString(),
+                    FechaLlamado: h.horaLlamado ? new Date(h.horaLlamado).toLocaleDateString() : "",
+                    HoraLlamado: h.horaLlamado ? new Date(h.horaLlamado).toLocaleTimeString() : "",
+                    TiempoEspera: tiempoEspera
+                }
+            });
+
+        if(d.length){
             XLSX.utils.book_append_sheet(
                 wb,
                 XLSX.utils.json_to_sheet(d),
@@ -340,7 +398,7 @@ function exportarExcel(){
             );
         }
     });
-    XLSX.writeFile(wb,"historial.xlsx");
+    XLSX.writeFile(wb,"historial_completo.xlsx");
 }
 
 // ================== BORRAR ==================
@@ -359,6 +417,5 @@ document.getElementById("btnPantalla").onclick = () => {
 </script>
 </body>
 </html>
-
 
 
