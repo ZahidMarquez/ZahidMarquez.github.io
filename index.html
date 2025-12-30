@@ -30,258 +30,315 @@ button { cursor: pointer; font-weight: bold; }
 ul { list-style: none; padding: 0; }
 
 li {
-    margin: 10px 0;
-    padding: 15px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
 }
 
-li.aeromexico { background: #a8dadc; }
-li.platinum  { background: #d6cadd; }
-li.centurion { background: #ffd6a5; }
+.aeromexico { background: #a8dadc; }
+.platinum  { background: #d6cadd; }
+.centurion { background: #ffd6a5; }
 
-.btn-llamar { background: #a8dadc; border: none; }
-.btn-stop   { background: #ffb5a7; border: none; }
+.btn-llamar { background: #90dbf4; border:none; margin-left:5px; }
+.btn-stop   { background: #ffadad; border:none; margin-left:5px; }
 
 .exportar { background: #bde0fe; }
 .borrar   { background: #ffc8dd; }
+
+#resumen{
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    box-shadow: 0 4px 10px rgba(0,0,0,.2);
+}
+#resumen div{
+    margin: 4px 0;
+    font-weight: bold;
+}
 </style>
 </head>
 
 <body>
 
+
+<!-- RESUMEN -->
+<div id="resumen">
+  <div id="res-centurion"></div>
+  <div id="res-platinum"></div>
+  <div id="res-aeromexico"></div>
+</div>
+
 <h2>📋 Lista de Espera ✈️</h2>
 
 <div style="text-align:center;">
 <input type="text" id="nombre" placeholder="Nombre del pasajero">
-
-<input
-  type="number"
-  id="pasajeros"
-  placeholder="Número de pasajeros"
-  min="1"
-  step="1"
-  inputmode="numeric"
->
-
+<input type="number" id="pasajeros" placeholder="Número de pasajeros" min="1">
 <select id="tipo">
   <option value="Aeromexico">Aeromexico</option>
   <option value="Platinum">Platinum</option>
   <option value="Centurion">Centurion</option>
-</select>
-<br>
+</select><br>
 
 <button id="btnAgregar">Agregar</button>
 <button id="btnPantalla">📺 Pantalla</button>
 
-<div style="margin-top:10px;">
-    <label style="font-weight:bold;">
-        <input type="checkbox" id="toggleTicket">
-        🖨️ Imprimir ticket automáticamente
-    </label>
+<div>
+<label><input type="checkbox" id="toggleTicket"> 🖨️ Imprimir ticket</label>
 </div>
 </div>
+
+<h3>⏱️ Tiempo estimado de espera</h3>
+<div id="tiempoEspera" style="text-align:center;font-size:20px;font-weight:bold;">-- minutos</div>
 
 <h3>Pasajeros en espera</h3>
 <ul id="lista"></ul>
 
 <h3>Historial</h3>
-<ul id="historial"></ul>
 
-<h3>Total de personas: <span id="total">0</span></h3>
+<button onclick="toggleHistorial('Centurion')">➕ Centurion</button>
+<ul id="historial-Centurion" style="display:none;"></ul>
+
+<button onclick="toggleHistorial('Platinum')">➕ Platinum</button>
+<ul id="historial-Platinum" style="display:none;"></ul>
+
+<button onclick="toggleHistorial('Aeromexico')">➕ Aeromexico</button>
+<ul id="historial-Aeromexico" style="display:none;"></ul>
+
+<h3>Total personas: <span id="total">0</span></h3>
 
 <div style="text-align:center;">
-<button class="exportar" onclick="exportarExcel()">💾 Descargar Excel</button>
-<button class="borrar" onclick="borrarHistorial()">🗑️ Borrar historial</button>
+<button class="exportar" onclick="exportarExcel()">💾 Excel</button>
+<button class="borrar" onclick="borrarHistorial()">🗑️ Borrar</button>
 </div>
 
 <audio id="sonidoLlamado" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
-// ===== JERARQUÍA =====
-const jerarquia = {
-    "Centurion": 1,
-    "Platinum": 2,
-    "Aeromexico": 3
-};
 
-// ===== STORAGE =====
-let totalPersonas = Number(localStorage.getItem("totalPersonas")) || 0;
-let historial = JSON.parse(localStorage.getItem("historial")) || [];
+
+
+// ================== JERARQUÍA ==================
+const jerarquia = { Centurion:1, Platinum:2, Aeromexico:3 };
+
+
+
+// ================== STORAGE ==================
 let listaEspera = JSON.parse(localStorage.getItem("listaEspera")) || [];
+let historial = JSON.parse(localStorage.getItem("historial")) || [];
+let totalPersonas = Number(localStorage.getItem("totalPersonas")) || 0;
 let codigoCounter = Number(localStorage.getItem("codigoCounter")) || 1;
-
-// ===== TICKET =====
 let imprimirTicket = localStorage.getItem("imprimirTicket") === "true";
-const toggleTicket = document.getElementById("toggleTicket");
-toggleTicket.checked = imprimirTicket;
 
-toggleTicket.addEventListener("change", () => {
-    imprimirTicket = toggleTicket.checked;
-    localStorage.setItem("imprimirTicket", imprimirTicket);
-});
 
+
+// ================== INPUTS ==================
+const nombreInput = document.getElementById("nombre");
+const pasajerosInput = document.getElementById("pasajeros");
+const tipoInput = document.getElementById("tipo");
+
+document.getElementById("toggleTicket").checked = imprimirTicket;
 document.getElementById("total").textContent = totalPersonas;
+
 renderLista();
 renderHistorial();
+actualizarResumen();
 
-// ===== AGREGAR =====
-document.getElementById("btnAgregar").addEventListener("click", () => {
-    const nombre = document.getElementById("nombre").value.trim();
-    const pasajeros = Number(document.getElementById("pasajeros").value);
-    const tipo = document.getElementById("tipo").value;
+
+
+// ================== TOGGLE HISTORIAL ==================
+function toggleHistorial(tipo){
+    const ul = document.getElementById(`historial-${tipo}`);
+    ul.style.display = ul.style.display === "none" ? "block" : "none";
+}
+
+
+
+// ================== AGREGAR ==================
+document.getElementById("btnAgregar").onclick = () => {
+    const nombre = nombreInput.value.trim();
+    const pasajeros = Number(pasajerosInput.value);
+    const tipo = tipoInput.value;
 
     if (!nombre || pasajeros <= 0) {
-        alert("Complete correctamente los datos");
+        alert("Datos inválidos");
         return;
     }
 
-    const codigo = "AE-" + codigoCounter.toString().padStart(4,"0");
-    codigoCounter++;
-    localStorage.setItem("codigoCounter", codigoCounter);
-
     const pasajero = {
-        codigo,
+        codigo: `AE-${String(codigoCounter++).padStart(4,"0")}`,
         nombre,
         pasajeros,
         tipo,
-        horaRegistro: new Date().toISOString()
+        horaRegistro: Date.now(),
+        horaLlamado: null
     };
 
-    if (imprimirTicket) imprimirTicketPasajero(pasajero);
-
     listaEspera.push(pasajero);
-    localStorage.setItem("listaEspera", JSON.stringify(listaEspera));
-
     totalPersonas += pasajeros;
-    localStorage.setItem("totalPersonas", totalPersonas);
-    document.getElementById("total").textContent = totalPersonas;
 
+    guardar();
     renderLista();
-    document.getElementById("nombre").value = "";
-    document.getElementById("pasajeros").value = "";
-});
+    actualizarResumen();
 
-// ===== IMPRIMIR TICKET =====
-function imprimirTicketPasajero(p) {
-    const v = window.open("", "", "width=300,height=400");
-    v.document.write(`
-        <html><body style="font-family:monospace;text-align:center">
-        <h2>LISTA DE ESPERA</h2><hr>
-        <p><strong>${p.codigo}</strong></p>
-        <p>${p.nombre}</p>
-        <p>${p.pasajeros} pasajeros</p>
-        <p>${p.tipo}</p>
-        <hr>
-        <p>${new Date(p.horaRegistro).toLocaleString()}</p>
-        </body></html>
-    `);
-    v.document.close();
-    v.print();
-    v.close();
-}
+    nombreInput.value = "";
+    pasajerosInput.value = "";
+};
 
-// ===== LLAMAR =====
+
+
+// ================== LLAMAR ==================
 function llamarPasajero(codigo){
-    const pas = listaEspera.find(p => p.codigo === codigo);
-    if (!pas) return;
-    localStorage.setItem("llamadaActiva", JSON.stringify(pas));
-    localStorage.setItem("actualizarPantalla", Date.now());
+    const p = listaEspera.find(x => x.codigo === codigo);
+    if (!p) return;
+    p.horaLlamado = Date.now();
     document.getElementById("sonidoLlamado").play();
 }
 
-// ===== FINALIZAR =====
+
+
+// ================== FINALIZAR ==================
 function detenerLlamada(codigo){
     const idx = listaEspera.findIndex(p => p.codigo === codigo);
     if (idx < 0) return;
 
-    const pas = listaEspera[idx];
-    listaEspera.splice(idx, 1);
-    localStorage.setItem("listaEspera", JSON.stringify(listaEspera));
+    const p = listaEspera.splice(idx, 1)[0];
 
-    historial.push({ ...pas, horaLlamado: new Date().toLocaleString() });
-    localStorage.setItem("historial", JSON.stringify(historial));
 
-    totalPersonas -= pas.pasajeros;
-    localStorage.setItem("totalPersonas", totalPersonas);
-    document.getElementById("total").textContent = totalPersonas;
 
+    // GARANTIZA horaLlamado
+    p.horaLlamado = p.horaLlamado || Date.now();
+
+    historial.push(p);
+    totalPersonas -= p.pasajeros;
+
+    guardar();
     renderLista();
     renderHistorial();
+    actualizarResumen();
 }
 
-// ===== RENDER =====
+
+
+// ================== RENDER LISTA ==================
 function renderLista(){
-    const ul = document.getElementById("lista");
-    ul.innerHTML = "";
+    lista.innerHTML = "";
+    [...listaEspera]
+        .sort((a,b)=>jerarquia[a.tipo]-jerarquia[b.tipo] || a.horaRegistro-b.horaRegistro)
+        .forEach(p=>{
+            const li = document.createElement("li");
+            li.className = p.tipo.toLowerCase();
+            li.innerHTML = `<b>${p.codigo}</b> — ${p.nombre} (${p.pasajeros} pax)`;
 
-    const ordenada = [...listaEspera].sort((a,b)=>{
-        if(jerarquia[a.tipo] !== jerarquia[b.tipo]){
-            return jerarquia[a.tipo] - jerarquia[b.tipo];
-        }
-        return new Date(a.horaRegistro) - new Date(b.horaRegistro);
-    });
+            const b1 = document.createElement("button");
+            b1.textContent = "Llamar";
+            b1.className = "btn-llamar";
+            b1.onclick = ()=>llamarPasajero(p.codigo);
 
-    ordenada.forEach(p=>{
-        const li = document.createElement("li");
-        li.className = p.tipo.toLowerCase();
-        li.innerHTML = `<strong>${p.codigo}</strong> — ${p.nombre} — ${p.pasajeros} pax — ${p.tipo}`;
+            const b2 = document.createElement("button");
+            b2.textContent = "Finalizar";
+            b2.className = "btn-stop";
+            b2.onclick = ()=>detenerLlamada(p.codigo);
 
-        const b1 = document.createElement("button");
-        b1.textContent = "Llamar";
-        b1.className = "btn-llamar";
-        b1.onclick = ()=>llamarPasajero(p.codigo);
+            li.append(b1,b2);
+            lista.appendChild(li);
+        });
 
-        const b2 = document.createElement("button");
-        b2.textContent = "Finalizar";
-        b2.className = "btn-stop";
-        b2.onclick = ()=>detenerLlamada(p.codigo);
-
-        li.append(b1,b2);
-        ul.appendChild(li);
-    });
+    total.textContent = totalPersonas;
 }
 
+
+
+// ================== HISTORIAL ==================
 function renderHistorial(){
-    const ul = document.getElementById("historial");
-    ul.innerHTML = "";
-    historial.forEach(h=>{
-        const li = document.createElement("li");
-        li.textContent = `${h.codigo} — ${h.nombre} — ${h.pasajeros} pax — ${h.tipo}`;
-        ul.appendChild(li);
+    ["Centurion","Platinum","Aeromexico"].forEach(t=>{
+        const ul = document.getElementById(`historial-${t}`);
+        ul.innerHTML = "";
+        historial.filter(h=>h.tipo===t).forEach(h=>{
+            const li = document.createElement("li");
+            li.textContent = `${h.codigo} — ${h.nombre} (${h.pasajeros} pax)`;
+            ul.appendChild(li);
+        });
+    });
+    actualizarTiempo();
+}
+
+
+
+// ================== RESUMEN ==================
+function actualizarResumen(){
+    [["Centurion","CENT"],["Platinum","PLAT"],["Aeromexico","AERO"]]
+    .forEach(([t,a])=>{
+        const d = listaEspera.filter(p=>p.tipo===t);
+        document.getElementById(`res-${t.toLowerCase()}`)
+        .textContent = `${a} | ${d.length} | ${d.reduce((s,x)=>s+x.pasajeros,0)} pax`;
     });
 }
 
-// ===== EXCEL =====
+
+
+// ================== TIEMPO ==================
+function actualizarTiempo(){
+    const tiempos = historial
+        .filter(h=>h.horaLlamado)
+        .map(h=>(h.horaLlamado-h.horaRegistro)/60000);
+
+    if (!tiempos.length) return;
+
+    tiempoEspera.textContent =
+        `${Math.round(tiempos.reduce((a,b)=>a+b,0)/tiempos.length)} minutos`;
+}
+
+
+
+// ================== GUARDAR ==================
+function guardar(){
+    localStorage.setItem("listaEspera", JSON.stringify(listaEspera));
+    localStorage.setItem("historial", JSON.stringify(historial));
+    localStorage.setItem("totalPersonas", totalPersonas);
+    localStorage.setItem("codigoCounter", codigoCounter);
+}
+
+
+
+// ================== EXCEL ==================
 function exportarExcel(){
-    if(!historial.length) return alert("No hay datos");
     const wb = XLSX.utils.book_new();
     ["Centurion","Platinum","Aeromexico"].forEach(t=>{
         const d = historial.filter(h=>h.tipo===t);
-        if(d.length){
-            const ws = XLSX.utils.json_to_sheet(d);
-            XLSX.utils.book_append_sheet(wb, ws, t);
+        if (d.length) {
+            XLSX.utils.book_append_sheet(
+                wb,
+                XLSX.utils.json_to_sheet(d),
+                t
+            );
         }
     });
     XLSX.writeFile(wb,"historial.xlsx");
 }
 
-// ===== BORRAR =====
+
+
+// ================== BORRAR ==================
 function borrarHistorial(){
-    if(confirm("¿Borrar historial?")){
-        historial=[];
-        localStorage.setItem("historial","[]");
+    if (confirm("¿Borrar historial?")) {
+        historial = [];
+        guardar();
         renderHistorial();
     }
 }
 
-// ===== PANTALLA =====
-document.getElementById("btnPantalla").onclick=()=>{
-    window.open("pantalla.html","_blank");
+
+
+// ================== PANTALLA ==================
+document.getElementById("btnPantalla").onclick = () => {
+    window.open("pantalla.html", "_blank");
 };
 </script>
 
 </body>
 </html>
+
