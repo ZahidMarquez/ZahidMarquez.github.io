@@ -70,17 +70,50 @@ li {
 .exportar { background: rgba(189,224,254,0.6); }
 .borrar   { background: rgba(255,200,221,0.6); }
 
-.section, .historial-card, #resumen { background:transparent; padding:15px 20px; margin-bottom:20px; }
+.section, .historial-card, #resumen {
+    background:transparent;
+    padding:15px 20px;
+    margin-bottom:20px;
+}
 
-#resumen { position: fixed; top:15px; right:15px; font-size:14px; }
+/* ✅ CAMBIO AQUI */
+#resumen {
+    position: fixed;
+    top:15px;
+    right:15px;
+    font-size:14px;
+    text-align: right;
+}
+
 #resumen div { margin:6px 0; font-weight:bold; }
 
-.inputs-group { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
-#tiempoEspera { text-align:center; font-size:22px; font-weight:bold; }
+.inputs-group {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+}
 
-.historial-container { display:flex; justify-content:center; flex-wrap:wrap; gap:15px; }
+#tiempoEspera {
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+}
 
-#modo { position: fixed; top:15px; left:15px; font-size:20px; cursor:pointer; }
+.historial-container {
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+#modo {
+    position: fixed;
+    top:15px;
+    left:15px;
+    font-size:20px;
+    cursor:pointer;
+}
 </style>
 </head>
 
@@ -94,7 +127,7 @@ li {
   <div id="res-aeromexico"></div>
 </div>
 
-<h2>📋 Lista de Espera ✈️</h2>
+<h2>=== Lista de Espera ===✈</h2>
 
 <div class="section">
     <div class="inputs-group">
@@ -149,9 +182,11 @@ li {
 <audio id="sonidoLlamado" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
-/* ================== MODO OSCURO ================== */
 const modo=document.getElementById("modo");
-if(localStorage.getItem("dark")==="true"){ document.body.classList.add("dark"); modo.textContent="☀️"; }
+if(localStorage.getItem("dark")==="true"){
+    document.body.classList.add("dark");
+    modo.textContent="☀️";
+}
 modo.onclick=()=>{
     document.body.classList.toggle("dark");
     const d=document.body.classList.contains("dark");
@@ -159,7 +194,6 @@ modo.onclick=()=>{
     localStorage.setItem("dark",d);
 };
 
-/* ================== LOGICA ORIGINAL ================== */
 const jerarquia={Centurion:1,Platinum:2,Aeromexico:3};
 let listaEspera=JSON.parse(localStorage.getItem("listaEspera"))||[];
 let historial=JSON.parse(localStorage.getItem("historial"))||[];
@@ -172,7 +206,9 @@ const tipoInput=document.getElementById("tipo");
 
 document.getElementById("total").textContent=totalPersonas;
 
-renderLista();renderHistorial();actualizarResumen();
+renderLista();
+renderHistorial();
+actualizarResumen();
 
 document.getElementById("btnAgregar").onclick=agregarPasajero;
 document.getElementById("btnPantalla").onclick=()=>window.open("pantalla.html","_blank");
@@ -183,10 +219,20 @@ function agregarPasajero(){
     const tipo=tipoInput.value;
     if(!nombre||pasajeros<=0){alert("Datos inválidos");return;}
 
-    const p={codigo:`AE-${String(codigoCounter++).padStart(4,"0")}`,nombre,pasajeros,tipo,horaRegistro:Date.now(),horaLlamado:null};
-    listaEspera.push(p);totalPersonas+=pasajeros;
-    guardar();renderLista();actualizarResumen();
-    nombreInput.value="";pasajerosInput.value="";
+    const p={
+        codigo:`AE-${String(codigoCounter++).padStart(4,"0")}`,
+        nombre,pasajeros,tipo,
+        horaRegistro:Date.now(),
+        horaLlamado:null
+    };
+
+    listaEspera.push(p);
+    totalPersonas+=pasajeros;
+    guardar();
+    renderLista();
+    actualizarResumen();
+    nombreInput.value="";
+    pasajerosInput.value="";
 }
 
 function llamarPasajero(codigo){
@@ -196,29 +242,49 @@ function llamarPasajero(codigo){
     document.getElementById("sonidoLlamado").play();
 }
 
-function detenerLlamada(codigo){moverHistorial(codigo,false);}
-function retirado(codigo){moverHistorial(codigo,true);}
+function detenerLlamada(codigo){ moverHistorial(codigo,false); }
+function retirado(codigo){ moverHistorial(codigo,true); }
+
 function moverHistorial(codigo,ret){
     const i=listaEspera.findIndex(p=>p.codigo===codigo);
     if(i<0)return;
     const p=listaEspera.splice(i,1)[0];
     p.horaLlamado=p.horaLlamado||Date.now();
     p.retirado=ret;
-    historial.push(p);totalPersonas-=p.pasajeros;
-    guardar();renderLista();renderHistorial();actualizarResumen();
+    historial.push(p);
+    totalPersonas-=p.pasajeros;
+    guardar();
+    renderLista();
+    renderHistorial();
+    actualizarResumen();
 }
 
 function renderLista(){
     lista.innerHTML="";
-    [...listaEspera].sort((a,b)=>jerarquia[a.tipo]-jerarquia[b.tipo]||a.horaRegistro-b.horaRegistro)
+    [...listaEspera]
+    .sort((a,b)=>jerarquia[a.tipo]-jerarquia[b.tipo]||a.horaRegistro-b.horaRegistro)
     .forEach(p=>{
         const li=document.createElement("li");
         li.className=p.tipo.toLowerCase();
         li.innerHTML=`<b>${p.codigo}</b> — ${p.nombre} (${p.pasajeros} pax)`;
-        const b1=document.createElement("button");b1.textContent="Llamar";b1.className="btn-llamar";b1.onclick=()=>llamarPasajero(p.codigo);
-        const b2=document.createElement("button");b2.textContent="Finalizar";b2.className="btn-stop";b2.onclick=()=>detenerLlamada(p.codigo);
-        const b3=document.createElement("button");b3.textContent="Retirado";b3.className="btn-retirado";b3.onclick=()=>retirado(p.codigo);
-        li.append(b1,b2,b3);lista.appendChild(li);
+
+        const b1=document.createElement("button");
+        b1.textContent="Llamar";
+        b1.className="btn-llamar";
+        b1.onclick=()=>llamarPasajero(p.codigo);
+
+        const b2=document.createElement("button");
+        b2.textContent="Finalizar";
+        b2.className="btn-stop";
+        b2.onclick=()=>detenerLlamada(p.codigo);
+
+        const b3=document.createElement("button");
+        b3.textContent="Retirado";
+        b3.className="btn-retirado";
+        b3.onclick=()=>retirado(p.codigo);
+
+        li.append(b1,b2,b3);
+        lista.appendChild(li);
     });
     total.textContent=totalPersonas;
 }
@@ -246,13 +312,17 @@ function toggleHistorial(tipo, btn){
 function actualizarResumen(){
     [["Centurion","CENT"],["Platinum","PLAT"],["Aeromexico","AERO"]].forEach(([t,a])=>{
         const d=listaEspera.filter(p=>p.tipo===t);
-        document.getElementById(`res-${t.toLowerCase()}`).textContent=`${a} | ${d.length} | ${d.reduce((s,x)=>s+x.pasajeros,0)} pax`;
+        document.getElementById(`res-${t.toLowerCase()}`)
+        .textContent=`${a} | ${d.length} | ${d.reduce((s,x)=>s+x.pasajeros,0)} pax`;
     });
 }
 
 function actualizarTiempo(){
-    const t=historial.filter(h=>h.horaLlamado).map(h=>(h.horaLlamado-h.horaRegistro)/60000);
-    tiempoEspera.textContent=t.length?`${Math.round(t.reduce((a,b)=>a+b,0)/t.length)} minutos`:"0 minutos";
+    const t=historial.filter(h=>h.horaLlamado)
+        .map(h=>(h.horaLlamado-h.horaRegistro)/60000);
+    tiempoEspera.textContent=t.length
+        ?`${Math.round(t.reduce((a,b)=>a+b,0)/t.length)} minutos`
+        :"0 minutos";
 }
 
 function guardar(){
@@ -266,17 +336,22 @@ function exportarExcel(){
     const wb=XLSX.utils.book_new();
     ["Centurion","Platinum","Aeromexico"].forEach(t=>{
         const d=historial.filter(h=>h.tipo===t);
-        if(d.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d),t);
+        if(d.length)
+            XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d),t);
     });
     XLSX.writeFile(wb,"historial.xlsx");
 }
 
 function borrarHistorial(){
     if(confirm("¿Borrar historial?")){
-        historial=[];guardar();renderHistorial();
+        historial=[];
+        guardar();
+        renderHistorial();
     }
 }
 </script>
 
 </body>
 </html>
+
+
