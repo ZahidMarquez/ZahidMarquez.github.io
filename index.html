@@ -1,357 +1,256 @@
 
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Lista de Espera Interactiva</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lista de Espera VIP · Tablet</title>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <style>
-:root {
-    --bg: linear-gradient(135deg, #c7f0f9, #fdd6e3);
-    --text: #333;
+:root{
+ --bg:#f2f4f8; --card:#fff; --text:#222;
+ --btn:#1e88e5;
 }
-body.dark {
-    --bg: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    --text: #f1f1f1;
+body.dark{
+ --bg:#0f2027; --card:#203a43; --text:#f1f1f1;
 }
-
-body {
-    margin: 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    transition: background .3s ease, color .3s ease;
-}
-
-h2,h3 { text-align:center; margin-bottom:10px; }
-
-input, select {
-    padding:12px;
-    margin:5px;
-    border-radius:14px;
-    font-size:16px;
-    background: rgba(255,255,255,0.25);
-    border:none;
-    color: var(--text);
+*{box-sizing:border-box}
+body{
+ margin:0;
+ padding:16px;
+ font-family:system-ui,Arial,sans-serif;
+ background:var(--bg);
+ color:var(--text);
+ touch-action:manipulation;
 }
 
-button {
-    padding:10px 16px;
-    margin:5px;
-    border-radius:14px;
-    font-weight:bold;
-    font-size:15px;
-    cursor:pointer;
-    border:none;
-    background: rgba(255,255,255,0.35);
-    color: var(--text);
-    transition: transform .15s;
-}
-button:hover { transform:scale(1.05); }
+h2,h3{text-align:center;margin:12px 0}
 
-ul { list-style:none; padding:0; }
-li {
-    margin:8px 0;
-    padding:12px;
-    border-radius:18px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-.aeromexico { background: rgba(168,218,220,0.35); }
-.platinum  { background: rgba(214,202,221,0.35); }
-.centurion { background: rgba(255,214,165,0.35); }
-
-.btn-llamar { background: rgba(144,219,244,0.6); }
-.btn-stop   { background: rgba(255,173,173,0.6); }
-.btn-retirado { background: rgba(200,200,200,0.6); }
-.exportar { background: rgba(189,224,254,0.6); }
-.borrar   { background: rgba(255,200,221,0.6); }
-
-.section, .historial-card, #resumen {
-    background:transparent;
-    padding:15px 20px;
-    margin-bottom:20px;
+.section{
+ background:var(--card);
+ padding:16px;
+ border-radius:18px;
+ margin-bottom:16px;
 }
 
-/* ✅ CAMBIO AQUI */
-#resumen {
-    position: fixed;
-    top:15px;
-    right:15px;
-    font-size:14px;
-    text-align: right;
+input,select,button{
+ width:100%;
+ padding:16px;
+ margin:8px 0;
+ border-radius:18px;
+ border:none;
+ font-size:18px;
 }
 
-#resumen div { margin:6px 0; font-weight:bold; }
-
-.inputs-group {
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:10px;
+button{
+ font-weight:700;
+ background:var(--btn);
+ color:white;
+ cursor:pointer;
 }
 
-#tiempoEspera {
-    text-align:center;
-    font-size:22px;
-    font-weight:bold;
+button:active{transform:scale(.97)}
+
+.row{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
 }
 
-.historial-container {
-    display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:15px;
+ul{list-style:none;padding:0;margin:0}
+
+li{
+ margin:10px 0;
+ padding:14px;
+ border-radius:18px;
+ display:flex;
+ flex-direction:column;
+ gap:10px;
 }
 
-#modo {
-    position: fixed;
-    top:15px;
-    left:15px;
-    font-size:20px;
-    cursor:pointer;
+.centurion{background:#ffe4b5}
+.platinum{background:#e0d7f5}
+.aeromexico{background:#cce5e8}
+
+.actions{
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:10px;
 }
+
+.btn-llamar{background:#219ebc}
+.btn-fin{background:#2a9d8f}
+.btn-ret{background:#e63946}
+
+.small{font-size:14px;opacity:.7}
+.total{font-size:22px;font-weight:700;text-align:center}
 </style>
 </head>
 
 <body>
 
-<div id="modo">🌙</div>
-
-<div id="resumen">
-  <div id="res-centurion"></div>
-  <div id="res-platinum"></div>
-  <div id="res-aeromexico"></div>
-</div>
-
-<h2>=== Lista de Espera ===✈</h2>
+<h2>✈ Lista de Espera VIP</h2>
 
 <div class="section">
-    <div class="inputs-group">
-        <input type="text" id="nombre" placeholder="Nombre del pasajero">
-        <input type="number" id="pasajeros" placeholder="Número de pasajeros" min="1">
-        <select id="tipo">
-            <option value="Aeromexico">Aeromexico</option>
-            <option value="Platinum">Platinum</option>
-            <option value="Centurion">Centurion</option>
-        </select>
-        <button id="btnAgregar">Agregar</button>
-        <button id="btnPantalla">📺 Pantalla</button>
-    </div>
-    <div style="text-align:center;">
-        <label><input type="checkbox" id="toggleTicket"> 🖨️ Imprimir ticket</label>
-    </div>
+ <input id="nombre" placeholder="Nombre">
+ <input id="pasajeros" type="number" min="1" placeholder="Pasajeros">
+ <select id="tipo">
+  <option>Centurion</option>
+  <option>Platinum</option>
+  <option>Aeromexico</option>
+ </select>
+
+ <div class="row">
+  <button onclick="agregar()">➕ Agregar</button>
+  <button onclick="toggleDark()">🌙 Modo</button>
+ </div>
+
+ <label class="small">
+  <input type="checkbox" id="chkTicket"> 🖨️ Imprimir ticket
+ </label>
 </div>
 
 <div class="section">
-<h3>⏱️ Tiempo estimado de espera</h3>
-<div id="tiempoEspera">-- minutos</div>
+ <h3>En espera</h3>
+ <ul id="lista"></ul>
+ <div class="total">Total personas: <span id="total">0</span></div>
 </div>
 
 <div class="section">
-<h3>Pasajeros en espera</h3>
-<ul id="lista"></ul>
+ <h3>Historial</h3>
+ <ul id="historial"></ul>
+ <div class="small">⏱ Promedio espera: <span id="promedio">0</span> min</div>
+ <button onclick="exportarExcel()">📊 Exportar Excel</button>
 </div>
 
-<div class="section">
-<h3>Historial</h3>
-<div class="historial-container">
-    <div class="historial-card">
-        <button onclick="toggleHistorial('Centurion', this)">Centurion ➕</button>
-        <ul id="historial-Centurion" style="display:none;"></ul>
-    </div>
-    <div class="historial-card">
-        <button onclick="toggleHistorial('Platinum', this)">Platinum ➕</button>
-        <ul id="historial-Platinum" style="display:none;"></ul>
-    </div>
-    <div class="historial-card">
-        <button onclick="toggleHistorial('Aeromexico', this)">Aeromexico ➕</button>
-        <ul id="historial-Aeromexico" style="display:none;"></ul>
-    </div>
-</div>
-
-<h3>Total personas: <span id="total">0</span></h3>
-<div style="text-align:center;">
-    <button class="exportar" onclick="exportarExcel()">💾 Excel</button>
-    <button class="borrar" onclick="borrarHistorial()">🗑️ Borrar</button>
-</div>
-
-<audio id="sonidoLlamado" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="sonido" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
-const modo=document.getElementById("modo");
-if(localStorage.getItem("dark")==="true"){
-    document.body.classList.add("dark");
-    modo.textContent="☀️";
-}
-modo.onclick=()=>{
-    document.body.classList.toggle("dark");
-    const d=document.body.classList.contains("dark");
-    modo.textContent=d?"☀️":"🌙";
-    localStorage.setItem("dark",d);
-};
+let lista=JSON.parse(localStorage.getItem("lista"))||[];
+let historial=JSON.parse(localStorage.getItem("historial"))||[];
+let contador=Number(localStorage.getItem("contador"))||1;
+let dark=localStorage.getItem("dark")==="1";
 
 const jerarquia={Centurion:1,Platinum:2,Aeromexico:3};
-let listaEspera=JSON.parse(localStorage.getItem("listaEspera"))||[];
-let historial=JSON.parse(localStorage.getItem("historial"))||[];
-let totalPersonas=Number(localStorage.getItem("totalPersonas"))||0;
-let codigoCounter=Number(localStorage.getItem("codigoCounter"))||1;
-
-const nombreInput=document.getElementById("nombre");
-const pasajerosInput=document.getElementById("pasajeros");
-const tipoInput=document.getElementById("tipo");
-
-document.getElementById("total").textContent=totalPersonas;
-
-renderLista();
-renderHistorial();
-actualizarResumen();
-
-document.getElementById("btnAgregar").onclick=agregarPasajero;
-document.getElementById("btnPantalla").onclick=()=>window.open("pantalla.html","_blank");
-
-function agregarPasajero(){
-    const nombre=nombreInput.value.trim();
-    const pasajeros=Number(pasajerosInput.value);
-    const tipo=tipoInput.value;
-    if(!nombre||pasajeros<=0){alert("Datos inválidos");return;}
-
-    const p={
-        codigo:`AE-${String(codigoCounter++).padStart(4,"0")}`,
-        nombre,pasajeros,tipo,
-        horaRegistro:Date.now(),
-        horaLlamado:null
-    };
-
-    listaEspera.push(p);
-    totalPersonas+=pasajeros;
-    guardar();
-    renderLista();
-    actualizarResumen();
-    nombreInput.value="";
-    pasajerosInput.value="";
-}
-
-function llamarPasajero(codigo){
-    const p=listaEspera.find(x=>x.codigo===codigo);
-    if(!p)return;
-    p.horaLlamado=Date.now();
-    document.getElementById("sonidoLlamado").play();
-}
-
-function detenerLlamada(codigo){ moverHistorial(codigo,false); }
-function retirado(codigo){ moverHistorial(codigo,true); }
-
-function moverHistorial(codigo,ret){
-    const i=listaEspera.findIndex(p=>p.codigo===codigo);
-    if(i<0)return;
-    const p=listaEspera.splice(i,1)[0];
-    p.horaLlamado=p.horaLlamado||Date.now();
-    p.retirado=ret;
-    historial.push(p);
-    totalPersonas-=p.pasajeros;
-    guardar();
-    renderLista();
-    renderHistorial();
-    actualizarResumen();
-}
-
-function renderLista(){
-    lista.innerHTML="";
-    [...listaEspera]
-    .sort((a,b)=>jerarquia[a.tipo]-jerarquia[b.tipo]||a.horaRegistro-b.horaRegistro)
-    .forEach(p=>{
-        const li=document.createElement("li");
-        li.className=p.tipo.toLowerCase();
-        li.innerHTML=`<b>${p.codigo}</b> — ${p.nombre} (${p.pasajeros} pax)`;
-
-        const b1=document.createElement("button");
-        b1.textContent="Llamar";
-        b1.className="btn-llamar";
-        b1.onclick=()=>llamarPasajero(p.codigo);
-
-        const b2=document.createElement("button");
-        b2.textContent="Finalizar";
-        b2.className="btn-stop";
-        b2.onclick=()=>detenerLlamada(p.codigo);
-
-        const b3=document.createElement("button");
-        b3.textContent="Retirado";
-        b3.className="btn-retirado";
-        b3.onclick=()=>retirado(p.codigo);
-
-        li.append(b1,b2,b3);
-        lista.appendChild(li);
-    });
-    total.textContent=totalPersonas;
-}
-
-function renderHistorial(){
-    ["Centurion","Platinum","Aeromexico"].forEach(t=>{
-        const ul=document.getElementById(`historial-${t}`);
-        ul.innerHTML="";
-        historial.filter(h=>h.tipo===t).forEach(h=>{
-            const li=document.createElement("li");
-            li.textContent=`${h.codigo} — ${h.nombre} (${h.pasajeros} pax)${h.retirado?" (Retirado)":""}`;
-            ul.appendChild(li);
-        });
-    });
-    actualizarTiempo();
-}
-
-function toggleHistorial(tipo, btn){
-    const ul=document.getElementById(`historial-${tipo}`);
-    const abierto=ul.style.display==="block";
-    ul.style.display=abierto?"none":"block";
-    btn.textContent=`${tipo} ${abierto?"➕":"➖"}`;
-}
-
-function actualizarResumen(){
-    [["Centurion","CENT"],["Platinum","PLAT"],["Aeromexico","AERO"]].forEach(([t,a])=>{
-        const d=listaEspera.filter(p=>p.tipo===t);
-        document.getElementById(`res-${t.toLowerCase()}`)
-        .textContent=`${a} | ${d.length} | ${d.reduce((s,x)=>s+x.pasajeros,0)} pax`;
-    });
-}
-
-function actualizarTiempo(){
-    const t=historial.filter(h=>h.horaLlamado)
-        .map(h=>(h.horaLlamado-h.horaRegistro)/60000);
-    tiempoEspera.textContent=t.length
-        ?`${Math.round(t.reduce((a,b)=>a+b,0)/t.length)} minutos`
-        :"0 minutos";
-}
+if(dark)document.body.classList.add("dark");
 
 function guardar(){
-    localStorage.setItem("listaEspera",JSON.stringify(listaEspera));
-    localStorage.setItem("historial",JSON.stringify(historial));
-    localStorage.setItem("totalPersonas",totalPersonas);
-    localStorage.setItem("codigoCounter",codigoCounter);
+ localStorage.setItem("lista",JSON.stringify(lista));
+ localStorage.setItem("historial",JSON.stringify(historial));
+ localStorage.setItem("contador",contador);
+ localStorage.setItem("dark",dark?1:0);
+}
+
+function agregar(){
+ const nombre=document.getElementById("nombre").value.trim();
+ const pasajeros=Number(document.getElementById("pasajeros").value);
+ const tipo=document.getElementById("tipo").value;
+
+ if(!nombre||pasajeros<=0) return alert("Datos inválidos");
+
+ const p={
+  codigo:`AE-${String(contador++).padStart(4,"0")}`,
+  nombre,pasajeros,tipo,
+  horaRegistro:Date.now()
+ };
+
+ lista.push(p);
+ guardar();
+ render();
+
+ if(document.getElementById("chkTicket").checked) imprimirTicket(p);
+
+ document.getElementById("nombre").value="";
+ document.getElementById("pasajeros").value="";
+}
+
+function llamar(c){
+ const p=lista.find(x=>x.codigo===c);
+ if(!p)return;
+ p.horaLlamado=Date.now();
+ document.getElementById("sonido").play();
+}
+
+function mover(c,ret){
+ const i=lista.findIndex(x=>x.codigo===c);
+ if(i<0)return;
+ const p=lista.splice(i,1)[0];
+ p.retirado=ret;
+ p.horaLlamado=p.horaLlamado||Date.now();
+ historial.unshift(p);
+ guardar();render();
+}
+
+function render(){
+ lista.sort((a,b)=>jerarquia[a.tipo]-jerarquia[b.tipo]||a.horaRegistro-b.horaRegistro);
+
+ const ul=document.getElementById("lista");
+ ul.innerHTML="";
+ let total=0;
+
+ lista.forEach(p=>{
+  total+=p.pasajeros;
+  const li=document.createElement("li");
+  li.className=p.tipo.toLowerCase();
+  li.innerHTML=`
+   <strong>${p.codigo}</strong>
+   ${p.nombre} · ${p.pasajeros} pax
+   <div class="actions">
+    <button class="btn-llamar" onclick="llamar('${p.codigo}')">Llamar</button>
+    <button class="btn-fin" onclick="mover('${p.codigo}',false)">Finalizar</button>
+    <button class="btn-ret" onclick="mover('${p.codigo}',true)">Retirado</button>
+   </div>
+  `;
+  ul.appendChild(li);
+ });
+
+ document.getElementById("total").textContent=total;
+
+ const h=document.getElementById("historial");
+ h.innerHTML="";
+ historial.forEach(p=>{
+  const li=document.createElement("li");
+  li.textContent=`${p.codigo} ${p.nombre} (${p.pasajeros}) ${p.retirado?"❌":""}`;
+  h.appendChild(li);
+ });
+
+ calcularPromedio();
+}
+
+function calcularPromedio(){
+ const t=historial.map(p=>(p.horaLlamado-p.horaRegistro)/60000);
+ document.getElementById("promedio").textContent=
+  t.length?Math.round(t.reduce((a,b)=>a+b,0)/t.length):0;
+}
+
+function imprimirTicket(p){
+ const w=window.open("","PRINT","width=300,height=600");
+ w.document.write(`
+ <body style="font-family:Arial;text-align:center;width:80mm">
+ <h2>${p.codigo}</h2>
+ <div>${p.nombre}</div>
+ <div>${p.pasajeros} pax</div>
+ <div>${p.tipo}</div>
+ <div>${new Date(p.horaRegistro).toLocaleTimeString()}</div>
+ </body>`);
+ w.print();w.close();
 }
 
 function exportarExcel(){
-    const wb=XLSX.utils.book_new();
-    ["Centurion","Platinum","Aeromexico"].forEach(t=>{
-        const d=historial.filter(h=>h.tipo===t);
-        if(d.length)
-            XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d),t);
-    });
-    XLSX.writeFile(wb,"historial.xlsx");
+ const wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(historial),"Historial");
+ XLSX.writeFile(wb,"historial.xlsx");
 }
 
-function borrarHistorial(){
-    if(confirm("¿Borrar historial?")){
-        historial=[];
-        guardar();
-        renderHistorial();
-    }
+function toggleDark(){
+ dark=!dark;
+ document.body.classList.toggle("dark");
+ guardar();
 }
+
+render();
 </script>
 
 </body>
 </html>
-
-
