@@ -1,277 +1,75 @@
-
-<html lang="es"><head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
 <meta charset="UTF-8">
-<title>Pantalla</title>
-
+<title> Pantalla Pública GZOM </title>
 <style>
-/* ESTILO GENERAL */
-body {
-  background: linear-gradient(135deg, #ffd6e0, #d0f0fd);
-  color: #333;
-  font-family: 'Poppins', sans-serif;
-  padding: 30px;
-  overflow-x: hidden;
-}
-
-/* TÍTULO */
-h1 {
-  text-align: center;
-  font-size: 64px;
-  margin-bottom: 40px;
-  color: #555;
-  text-shadow: 2px 2px 6px rgba(255,255,255,0.6);
-}
-
-/* TABLA SIN FONDO */
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 32px; /* letras grandes */
-  border-radius: 0;
-  background: transparent;
-}
-
-th, td {
-  padding: 22px;
-  text-align: left;
-  background: transparent;
-}
-
-/* ENCABEZADO */
-th {
-  font-weight: 700;
-  color: #333;
-  text-shadow: 1px 1px 3px rgba(255,255,255,0.7);
-}
-
-/* FILAS */
-tbody tr {
-  background: transparent;
-  transition: 0.3s ease;
-}
-
-tbody tr:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-/* LLAMADA GRANDE */
-#llamada-box {
-  display: none;
-  text-align: center;
-  margin-top: 80px;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-#llamada-box h2 {
-  font-size: 72px;
-  margin-bottom: 30px;
-  color: #ffb347;
-  text-shadow: 3px 3px 8px rgba(255,255,255,0.7);
-}
-
-/* SPLIT FLAP */
-@keyframes flip {
-  0% { transform: rotateX(90deg); opacity: 0; }
-  50% { transform: rotateX(-20deg); opacity: 1; }
-  100% { transform: rotateX(0deg); opacity: 1; }
-}
-
-span {
-  display: inline-block;
-  animation: flip 0.5s;
-}
-
-/* FADE */
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* BOTÓN FULLSCREEN */
-#btn-fullscreen {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  background: #ffb347;
-  border: none;
-  padding: 20px 26px;
-  font-size: 26px;
-  border-radius: 50px;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  transition: 0.3s ease;
-  z-index: 9999;
-}
-
-#btn-fullscreen:hover {
-  background: #ffa726;
-  transform: scale(1.08);
-}
-
-.fullscreen-hidden {
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* ZONA HOVER FULLSCREEN */
-#fs-hover-zone {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 160px;
-  height: 160px;
-  z-index: 50;
-}
+body{margin:0;font-family:Segoe UI,sans-serif;background:#0b2a5b;color:#fff;text-align:center;overflow:hidden;}
+h1{margin-top:20px;font-size:50px;}
+#proximoTurno{margin-top:30px;font-size:120px;font-weight:bold;transition: all 0.5s ease;}
+#nombre{font-size:50px;margin-top:10px;transition: all 0.5s ease;}
+#mostrador{font-size:40px;margin-top:5px;transition: all 0.5s ease;}
+.listaTurnos{margin-top:40px;display:flex;justify-content:center;gap:20px;font-size:24px;}
+.turnoCard{background:#1f1f1f;padding:20px;border-radius:10px;width:200px;transition: all 0.5s ease;}
+.Centurion{border-left:8px solid gold;}
+.Platino{border-left:8px solid silver;}
+.Aeromexico{border-left:8px solid #b02a2a;}
+@keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);}}
+.llamado{animation:pulse 0.7s ease;}
 </style>
 </head>
-
 <body>
-
-<h1>✈ LISTA DE ESPERA</h1>
-
-<div id="llamada-box" style="display: none;"></div>
-
-<table id="tabla" style="display: table;">
-  <thead>
-    <tr>
-      <th>CÓDIGO</th>
-      <th>NOMBRE</th>
-      <th>PAX</th>
-      <th>REGISTRO</th>
-    </tr>
-  </thead>
-  <tbody id="tabla-aire"><tr>
-      <td>AE-0034</td>
-      <td>lucas</td>
-      <td>1</td>
-      <td>2025-12-26T20:20:24.996Z</td>
-    </tr><tr>
-      <td>AE-0035</td>
-      <td>pedro</td>
-      <td>2</td>
-      <td>2025-12-26T20:20:37.945Z</td>
-    </tr><tr>
-      <td>AE-0036</td>
-      <td>ldldld</td>
-      <td>2</td>
-      <td>2025-12-26T20:22:31.624Z</td>
-    </tr><tr>
-      <td>AE-0037</td>
-      <td>krkrkr</td>
-      <td>3</td>
-      <td>2025-12-26T20:22:42.109Z</td>
-    </tr></tbody>
-</table>
-
-<div id="fs-hover-zone"></div>
-
-<button id="btn-fullscreen" class="">⛶</button>
-
-<audio id="sonidoPantalla" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<h1>✈ LISTA DE ESPERA :) </h1>
+<div id="proximoTurno">0</div>
+<div id="nombre">---</div>
+<div id="mostrador">---</div>
+<div class="listaTurnos" id="listaProximos"></div>
 
 <script>
-// SPLIT FLAP
-function splitFlap(text) {
-  return text.split("").map(l => `<span>${l}</span>`).join("");
-}
+let maxMostrar=5;
 
-// RENDER LISTA
-function renderLista(lista) {
-  const tbody = document.getElementById("tabla-aire");
-  tbody.innerHTML = "";
+function actualizarPantalla(){
+  const ultimo=localStorage.getItem("ultimoLlamado");
+  const espera=JSON.parse(localStorage.getItem("espera"))||[];
 
-  lista.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.codigo}</td>
-      <td>${p.nombre}</td>
-      <td>${p.pasajeros}</td>
-      <td>${p.horaRegistro}</td>
-    `;
-    tbody.appendChild(tr);
+  // Último llamado
+  if(ultimo){
+    const p=JSON.parse(ultimo);
+    const turnoElem=document.getElementById("proximoTurno");
+    turnoElem.innerText=p.turno;
+    turnoElem.classList.add("llamado");
+    setTimeout(()=>turnoElem.classList.remove("llamado"),700);
+    document.getElementById("nombre").innerText=p.nombre;
+    document.getElementById("mostrador").innerText=p.mostrador;
+  }
+
+  // Próximos turnos
+  const lista=document.getElementById("listaProximos");
+  lista.innerHTML="";
+  const proximos=espera.slice(0,maxMostrar);
+  proximos.forEach(t=>{
+    const div=document.createElement("div");
+    div.className="turnoCard "+t.tarjeta;
+    div.innerHTML=`<b>#${t.turno}</b><br>${t.nombre}<br>${t.mostrador}`;
+    lista.appendChild(div);
   });
 }
 
-// RENDER LLAMADA
-function renderLlamada(p) {
-  const box = document.getElementById("llamada-box");
-  const tabla = document.getElementById("tabla");
-
-  if (!p) {
-    box.style.display = "none";
-    tabla.style.display = "table";
-    return;
-  }
-
-  tabla.style.display = "none";
-  box.style.display = "block";
-
-  box.innerHTML = `
-    <h2>${splitFlap("LLAMANDO")}</h2>
-    <div style="font-size:96px;font-weight:bold;">${splitFlap(p.codigo)}</div>
-    <div style="font-size:72px;">${splitFlap(p.nombre)}</div>
-    <div style="font-size:56px;margin-top:20px;">
-      ${splitFlap(p.pasajeros + " PAX")}
-    </div>
-  `;
-
-  const audio = document.getElementById("sonidoPantalla");
-  audio.currentTime = 0;
-  audio.play();
-}
-
-let oldLista = "";
-let oldLlamada = "";
-
-setInterval(() => {
-  const listaRaw = localStorage.getItem("listaEspera");
-  const llamadaRaw = localStorage.getItem("llamadaActiva");
-
-  if (listaRaw !== oldLista) {
-    oldLista = listaRaw;
-    renderLista(JSON.parse(listaRaw) || []);
-  }
-
-  if (llamadaRaw !== oldLlamada) {
-    oldLlamada = llamadaRaw;
-    renderLlamada(JSON.parse(llamadaRaw));
-  }
-}, 500);
-
-/* FULLSCREEN */
-const btnFullscreen = document.getElementById("btn-fullscreen");
-const fsHoverZone = document.getElementById("fs-hover-zone");
-
-btnFullscreen.addEventListener("click", () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
+// Escucha cambios
+window.addEventListener('storage',function(e){
+  if(e.key==='ultimoLlamado'||e.key==='espera'||e.key==='limpiarPublico'){
+    if(e.key==='limpiarPublico'){
+      document.getElementById("proximoTurno").innerText='0';
+      document.getElementById("nombre").innerText='---';
+      document.getElementById("mostrador").innerText='---';
+      document.getElementById("listaProximos").innerHTML="";
+      localStorage.removeItem('limpiarPublico');
+    } else actualizarPantalla();
   }
 });
 
-document.addEventListener("fullscreenchange", () => {
-  btnFullscreen.classList.toggle(
-    "fullscreen-hidden",
-    !!document.fullscreenElement
-  );
-});
-
-fsHoverZone.addEventListener("mousemove", () => {
-  if (document.fullscreenElement) {
-    btnFullscreen.classList.remove("fullscreen-hidden");
-    setTimeout(() => {
-      if (document.fullscreenElement) {
-        btnFullscreen.classList.add("fullscreen-hidden");
-      }
-    }, 2000);
-  }
-});
+actualizarPantalla();
+setInterval(actualizarPantalla,1);
 </script>
-
-
-
-</body></html>
-
+</body>
+</html>
