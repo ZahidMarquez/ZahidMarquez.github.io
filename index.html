@@ -1,256 +1,244 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Lista de Espera VIP · Tablet</title>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
+<title>LISTA DE ESPERA GZOM</title>
 <style>
 :root{
- --bg:#f2f4f8; --card:#fff; --text:#222;
- --btn:#1e88e5;
+  --azul:#0b2a5b; --gris:#eef1f5; --verde:#1b8f4c; --rojo:#b02a2a; --amarillo:#e8a317; --morado:#6b2cbf;
 }
-body.dark{
- --bg:#0f2027; --card:#203a43; --text:#f1f1f1;
-}
-*{box-sizing:border-box}
-body{
- margin:0;
- padding:16px;
- font-family:system-ui,Arial,sans-serif;
- background:var(--bg);
- color:var(--text);
- touch-action:manipulation;
-}
-
-h2,h3{text-align:center;margin:12px 0}
-
-.section{
- background:var(--card);
- padding:16px;
- border-radius:18px;
- margin-bottom:16px;
-}
-
-input,select,button{
- width:100%;
- padding:16px;
- margin:8px 0;
- border-radius:18px;
- border:none;
- font-size:18px;
-}
-
-button{
- font-weight:700;
- background:var(--btn);
- color:white;
- cursor:pointer;
-}
-
-button:active{transform:scale(.97)}
-
-.row{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:10px;
-}
-
-ul{list-style:none;padding:0;margin:0}
-
-li{
- margin:10px 0;
- padding:14px;
- border-radius:18px;
- display:flex;
- flex-direction:column;
- gap:10px;
-}
-
-.centurion{background:#ffe4b5}
-.platinum{background:#e0d7f5}
-.aeromexico{background:#cce5e8}
-
-.actions{
- display:grid;
- grid-template-columns:1fr 1fr 1fr;
- gap:10px;
-}
-
-.btn-llamar{background:#219ebc}
-.btn-fin{background:#2a9d8f}
-.btn-ret{background:#e63946}
-
-.small{font-size:14px;opacity:.7}
-.total{font-size:22px;font-weight:700;text-align:center}
+body{margin:0;font-family:Segoe UI,sans-serif;background:var(--gris);color:#000;}
+body.dark{background:#121212;color:#fff;}
+header{background:var(--azul);color:#fff;padding:14px;text-align:center;font-size:22px;}
+.container{max-width:1300px;margin:auto;padding:16px;}
+.card{background:white;padding:14px;border-radius:6px;margin-bottom:14px;box-shadow:0 4px 10px rgba(0,0,0,.1);}
+body.dark .card{background:#1f1f1f;}
+input, select{padding:6px;font-size:13px;width:100%;margin-top:4px;border-radius:4px;}
+label{font-weight:600;font-size:12px;}
+button{border:none;padding:8px 12px;border-radius:4px;color:#fff;cursor:pointer;margin-top:6px;margin-right:6px;}
+.primary{background:var(--azul);}
+.llamar{background:var(--verde);}
+.finalizar{background:#3a5aa8;}
+.rojo{background:#b02a2a;}
+.stats-container{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;}
+.stat-card{flex:1 1 200px;padding:12px;border-radius:8px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.15);}
+.stat-card h3{margin:4px 0;font-size:28px;}
+.stat-card p{margin:0;font-size:14px;}
+.stat-total{background:var(--azul);}
+.stat-pax{background:var(--verde);}
+.stat-tarjeta{background:var(--amarillo);color:#000;}
+.stat-promedio{background:var(--morado);}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+th{background:var(--azul);color:#fff;padding:6px;}
+td{border:1px solid #ccc;padding:5px;text-align:center;}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;}
 </style>
 </head>
-
 <body>
+<header>✈ LISTA DE ESPERA :) </header>
+<div class="container">
 
-<h2>✈ Lista de Espera VIP</h2>
-
-<div class="section">
- <input id="nombre" placeholder="Nombre">
- <input id="pasajeros" type="number" min="1" placeholder="Pasajeros">
- <select id="tipo">
-  <option>Centurion</option>
-  <option>Platinum</option>
-  <option>Aeromexico</option>
- </select>
-
- <div class="row">
-  <button onclick="agregar()">➕ Agregar</button>
-  <button onclick="toggleDark()">🌙 Modo</button>
- </div>
-
- <label class="small">
-  <input type="checkbox" id="chkTicket"> 🖨️ Imprimir ticket
- </label>
+<!-- FORMULARIO -->
+<div class="card">
+<div class="form-grid">
+<div>
+<label>Nombre</label>
+<input type="text" id="nombre">
+</div>
+<div>
+<label>Pax</label>
+<input type="number" id="cantidad" min="1" value="1">
+</div>
+<div>
+<label>Tarjeta</label>
+<select id="tarjeta">
+  <option value="Centurion">Centurion</option>
+  <option value="Platino">Platino</option>
+  <option value="Aeromexico">Aeromexico</option>
+</select>
+</div>
+<div>
+<label>Mostrador</label>
+<select id="mostrador">
+  <option value="Centurion">Centurion</option>
+  <option value="Platino">Platino</option>
+</select>
+</div>
+</div>
+<button class="primary" onclick="registrar()">➕ Registrar e Imprimir Ticket</button>
 </div>
 
-<div class="section">
- <h3>En espera</h3>
- <ul id="lista"></ul>
- <div class="total">Total personas: <span id="total">0</span></div>
+<!-- BOTONES SUPERIORES -->
+<div class="card">
+<button class="primary" onclick="abrirPantalla()">📺 Abrir Pantalla Pública</button>
+<button class="primary" onclick="exportarExcel()">📊 Exportar Excel con Estadísticas</button>
+<button class="rojo" onclick="borrarHistorial()">🗑️ Borrar Historial</button>
+<button class="primary" onclick="toggleDark()">🌙 Modo Obscuro</button>
 </div>
 
-<div class="section">
- <h3>Historial</h3>
- <ul id="historial"></ul>
- <div class="small">⏱ Promedio espera: <span id="promedio">0</span> min</div>
- <button onclick="exportarExcel()">📊 Exportar Excel</button>
+<!-- ESTADÍSTICAS EN CUADROS -->
+<div class="card stats-container">
+  <div class="stat-card stat-total">
+    <p>Pasajeros en espera</p>
+    <h3 id="totalRegistros">0</h3>
+  </div>
+  <div class="stat-card stat-pax">
+    <p>Cantidad total de pasajeros</p>
+    <h3 id="totalPax">0</h3>
+  </div>
+  <div class="stat-card stat-tarjeta">
+    <p>Turnos por tarjeta</p>
+    <h3>Cent: <span id="countCenturion">0</span></h3>
+    <h3>Plat: <span id="countPlatino">0</span></h3>
+    <h3>Aeromex: <span id="countAeromexico">0</span></h3>
+  </div>
+  <div class="stat-card stat-promedio">
+    <p>Promedio de espera (min)</p>
+    <h3 id="promedioEspera">0</h3>
+  </div>
 </div>
 
-<audio id="sonido" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<!-- TABLA DE ESPERA -->
+<div class="card">
+<table>
+<thead>
+<tr>
+<th>Turno</th><th>Nombre</th><th>Pax</th><th>Tarjeta</th><th>Mostrador</th>
+<th>Hora Registro</th><th>Hora Llamada</th><th>Estado</th><th>Acciones</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-let lista=JSON.parse(localStorage.getItem("lista"))||[];
+let espera=JSON.parse(localStorage.getItem("espera"))||[];
 let historial=JSON.parse(localStorage.getItem("historial"))||[];
-let contador=Number(localStorage.getItem("contador"))||1;
-let dark=localStorage.getItem("dark")==="1";
+let turnoActual=JSON.parse(localStorage.getItem("turnoActual"))||1;
 
-const jerarquia={Centurion:1,Platinum:2,Aeromexico:3};
-if(dark)document.body.classList.add("dark");
-
-function guardar(){
- localStorage.setItem("lista",JSON.stringify(lista));
- localStorage.setItem("historial",JSON.stringify(historial));
- localStorage.setItem("contador",contador);
- localStorage.setItem("dark",dark?1:0);
+function registrar(){
+  const nombre=document.getElementById("nombre").value.trim();
+  const cantidad=parseInt(document.getElementById("cantidad").value);
+  const tarjeta=document.getElementById("tarjeta").value;
+  const mostrador=document.getElementById("mostrador").value;
+  if(!nombre||!cantidad){alert("Completa los datos");return;}
+  const horaRegistro=new Date().toISOString();
+  const pasajero={turno:turnoActual++,nombre,cantidad,tarjeta,mostrador,estado:"Pendiente",horaRegistro,horaLlamada:null};
+  espera.push(pasajero);
+  localStorage.setItem("espera",JSON.stringify(espera));
+  localStorage.setItem("turnoActual",turnoActual);
+  document.getElementById("nombre").value="";
+  document.getElementById("cantidad").value=1;
+  render();
+  imprimirTicketTermico(pasajero);
 }
 
-function agregar(){
- const nombre=document.getElementById("nombre").value.trim();
- const pasajeros=Number(document.getElementById("pasajeros").value);
- const tipo=document.getElementById("tipo").value;
-
- if(!nombre||pasajeros<=0) return alert("Datos inválidos");
-
- const p={
-  codigo:`AE-${String(contador++).padStart(4,"0")}`,
-  nombre,pasajeros,tipo,
-  horaRegistro:Date.now()
- };
-
- lista.push(p);
- guardar();
- render();
-
- if(document.getElementById("chkTicket").checked) imprimirTicket(p);
-
- document.getElementById("nombre").value="";
- document.getElementById("pasajeros").value="";
-}
-
-function llamar(c){
- const p=lista.find(x=>x.codigo===c);
- if(!p)return;
- p.horaLlamado=Date.now();
- document.getElementById("sonido").play();
-}
-
-function mover(c,ret){
- const i=lista.findIndex(x=>x.codigo===c);
- if(i<0)return;
- const p=lista.splice(i,1)[0];
- p.retirado=ret;
- p.horaLlamado=p.horaLlamado||Date.now();
- historial.unshift(p);
- guardar();render();
-}
+function abrirPantalla(){window.open("Pantalla.html","pantalla","fullscreen=yes");}
 
 function render(){
- lista.sort((a,b)=>jerarquia[a.tipo]-jerarquia[b.tipo]||a.horaRegistro-b.horaRegistro);
+  tabla.innerHTML="";
+  espera.forEach((p,i)=>{
+    tabla.innerHTML+=`
+    <tr>
+      <td>${p.turno}</td>
+      <td>${p.nombre}</td>
+      <td>${p.cantidad}</td>
+      <td>${p.tarjeta}</td>
+      <td>${p.mostrador}</td>
+      <td>${new Date(p.horaRegistro).toLocaleTimeString()}</td>
+      <td>${p.horaLlamada?p.horaLlamada.split('T')[1].slice(0,5):'---'}</td>
+      <td>${p.estado}</td>
+      <td>
+        <button class="llamar" onclick="llamar(${i})">Llamar</button>
+        <button class="finalizar" onclick="finalizar(${i})">Finalizar</button>
+      </td>
+    </tr>`;
+  });
 
- const ul=document.getElementById("lista");
- ul.innerHTML="";
- let total=0;
-
- lista.forEach(p=>{
-  total+=p.pasajeros;
-  const li=document.createElement("li");
-  li.className=p.tipo.toLowerCase();
-  li.innerHTML=`
-   <strong>${p.codigo}</strong>
-   ${p.nombre} · ${p.pasajeros} pax
-   <div class="actions">
-    <button class="btn-llamar" onclick="llamar('${p.codigo}')">Llamar</button>
-    <button class="btn-fin" onclick="mover('${p.codigo}',false)">Finalizar</button>
-    <button class="btn-ret" onclick="mover('${p.codigo}',true)">Retirado</button>
-   </div>
-  `;
-  ul.appendChild(li);
- });
-
- document.getElementById("total").textContent=total;
-
- const h=document.getElementById("historial");
- h.innerHTML="";
- historial.forEach(p=>{
-  const li=document.createElement("li");
-  li.textContent=`${p.codigo} ${p.nombre} (${p.pasajeros}) ${p.retirado?"❌":""}`;
-  h.appendChild(li);
- });
-
- calcularPromedio();
+  // Estadísticas
+  document.getElementById("totalRegistros").innerText=espera.length;
+  document.getElementById("totalPax").innerText=espera.reduce((a,b)=>a+b.cantidad,0);
+  document.getElementById("countCenturion").innerText=espera.filter(p=>p.tarjeta==="Centurion").length;
+  document.getElementById("countPlatino").innerText=espera.filter(p=>p.tarjeta==="Platino").length;
+  document.getElementById("countAeromexico").innerText=espera.filter(p=>p.tarjeta==="Aeromexico").length;
+  
+  const tiempos=historial.filter(h=>h.horaRegistro && h.horaLlamada)
+      .map(h=> (new Date(h.horaLlamada)-new Date(h.horaRegistro))/60000 );
+  document.getElementById("promedioEspera").innerText=tiempos.length? (tiempos.reduce((a,b)=>a+b,0)/tiempos.length).toFixed(1):0;
 }
 
-function calcularPromedio(){
- const t=historial.map(p=>(p.horaLlamado-p.horaRegistro)/60000);
- document.getElementById("promedio").textContent=
-  t.length?Math.round(t.reduce((a,b)=>a+b,0)/t.length):0;
+function llamar(i){
+  const ahora=new Date().toISOString();
+  espera[i].estado="Llamado";
+  espera[i].horaLlamada=ahora;
+  localStorage.setItem("espera",JSON.stringify(espera));
+  speechSynthesis.speak(new SpeechSynthesisUtterance(`Turno ${espera[i].turno}, mostrador ${espera[i].mostrador}`));
+  render();
 }
 
-function imprimirTicket(p){
- const w=window.open("","PRINT","width=300,height=600");
- w.document.write(`
- <body style="font-family:Arial;text-align:center;width:80mm">
- <h2>${p.codigo}</h2>
- <div>${p.nombre}</div>
- <div>${p.pasajeros} pax</div>
- <div>${p.tipo}</div>
- <div>${new Date(p.horaRegistro).toLocaleTimeString()}</div>
- </body>`);
- w.print();w.close();
+function finalizar(i){
+  const p=espera.splice(i,1)[0];
+  if(!p.horaLlamada)p.horaLlamada=new Date().toISOString();
+  p.estado="Finalizado";
+  historial.push(p);
+  localStorage.setItem("espera",JSON.stringify(espera));
+  localStorage.setItem("historial",JSON.stringify(historial));
+  render();
+}
+
+function borrarHistorial(){
+  if(confirm("¿Deseas borrar todo el historial de turnos finalizados?")){
+    historial=[];
+    localStorage.setItem("historial",JSON.stringify(historial));
+    localStorage.setItem("limpiarPublico","1");
+    alert("Historial borrado correctamente");
+  }
+}
+
+function toggleDark(){document.body.classList.toggle("dark");}
+
+function imprimirTicketTermico(p){
+  const win=window.open("","_blank","width=300,height=400");
+  win.document.write(`<pre style="font-family:monospace;font-size:14px;">
+✈ LISTA DE ESPERA
+------------------------------
+Turno: ${p.turno}
+Nombre: ${p.nombre}
+Pax: ${p.cantidad}
+Tarjeta: ${p.tarjeta}
+Mostrador: ${p.mostrador}
+Fecha: ${new Date().toLocaleString()}
+------------------------------
+Gracias por su espera
+</pre>`);
+  win.document.close(); win.focus(); win.print(); win.close();
 }
 
 function exportarExcel(){
- const wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(historial),"Historial");
- XLSX.writeFile(wb,"historial.xlsx");
-}
+  const wb=XLSX.utils.book_new();
+  const hoy=new Date();
+  const fechaStr=`${String(hoy.getDate()).padStart(2,'0')}-${String(hoy.getMonth()+1).padStart(2,'0')}-${hoy.getFullYear()}`;
+  const datos=historial.map(p=>({
+    Turno:p.turno,Nombre:p.nombre,Pax:p.cantidad,
+    Tarjeta:p.tarjeta,Mostrador:p.mostrador,
+    Hora_Registro:p.horaRegistro,Hora_Llamada:p.horaLlamada,
+    Estado:p.estado
+  }));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(datos),"Datos");
 
-function toggleDark(){
- dark=!dark;
- document.body.classList.toggle("dark");
- guardar();
+  const estadisticas=[];
+  ["Centurion","Platino","Aeromexico"].forEach(t=>{
+    const total=historial.filter(p=>p.tarjeta===t).length;
+    const pax=historial.filter(p=>p.tarjeta===t).reduce((a,b)=>a+b.cantidad,0);
+    estadisticas.push({Tarjeta:t,Total_Turnos:total,Total_Pax:pax});
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(estadisticas),"Estadísticas");
+
+  XLSX.writeFile(wb,`LISTA DE ESPERA - ${fechaStr}.xlsx`);
 }
 
 render();
 </script>
-
 </body>
 </html>
