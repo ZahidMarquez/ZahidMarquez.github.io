@@ -2,74 +2,71 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title> Pantalla Pública GZOM </title>
+<title>Pantalla Pública</title>
+
 <style>
-body{margin:0;font-family:Segoe UI,sans-serif;background:#0b2a5b;color:#fff;text-align:center;overflow:hidden;}
-h1{margin-top:20px;font-size:50px;}
-#proximoTurno{margin-top:30px;font-size:120px;font-weight:bold;transition: all 0.5s ease;}
-#nombre{font-size:50px;margin-top:10px;transition: all 0.5s ease;}
-#mostrador{font-size:40px;margin-top:5px;transition: all 0.5s ease;}
-.listaTurnos{margin-top:40px;display:flex;justify-content:center;gap:20px;font-size:24px;}
-.turnoCard{background:#1f1f1f;padding:20px;border-radius:10px;width:200px;transition: all 0.5s ease;}
+body{margin:0;font-family:Segoe UI,sans-serif;background:#0b2a5b;color:#fff;text-align:center;}
+h1{font-size:50px;margin-top:20px;}
+#proximoTurno{font-size:120px;font-weight:bold;}
+#nombre{font-size:50px;}
+#mostrador{font-size:40px;}
+.listaTurnos{margin-top:40px;display:flex;justify-content:center;gap:20px;}
+.turnoCard{background:#1f1f1f;padding:20px;border-radius:10px;width:200px;}
 .Centurion{border-left:8px solid gold;}
 .Platino{border-left:8px solid silver;}
 .Aeromexico{border-left:8px solid #b02a2a;}
 @keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);}}
-.llamado{animation:pulse 0.7s ease;}
+.llamado{animation:pulse .7s;}
 </style>
 </head>
+
 <body>
-<h1>✈ LISTA DE ESPERA :) </h1>
+<h1>✈ LISTA DE ESPERA</h1>
 <div id="proximoTurno">0</div>
 <div id="nombre">---</div>
 <div id="mostrador">---</div>
 <div class="listaTurnos" id="listaProximos"></div>
 
 <script>
-let maxMostrar=5;
+const proximoTurno=document.getElementById("proximoTurno");
+const nombre=document.getElementById("nombre");
+const mostrador=document.getElementById("mostrador");
+const listaProximos=document.getElementById("listaProximos");
 
-function actualizarPantalla(){
-  const ultimo=localStorage.getItem("ultimoLlamado");
+function actualizar(){
+  const ultimo=JSON.parse(localStorage.getItem("ultimoLlamado"));
   const espera=JSON.parse(localStorage.getItem("espera"))||[];
 
-  // Último llamado
-  if(ultimo){
-    const p=JSON.parse(ultimo);
-    const turnoElem=document.getElementById("proximoTurno");
-    turnoElem.innerText=p.turno;
-    turnoElem.classList.add("llamado");
-    setTimeout(()=>turnoElem.classList.remove("llamado"),700);
-    document.getElementById("nombre").innerText=p.nombre;
-    document.getElementById("mostrador").innerText=p.mostrador;
+  if(ultimo && Number(proximoTurno.innerText)!==ultimo.turno){
+    proximoTurno.innerText=ultimo.turno;
+    nombre.innerText=ultimo.nombre;
+    mostrador.innerText=ultimo.mostrador;
+    [proximoTurno,nombre,mostrador].forEach(e=>{
+      e.classList.add("llamado");
+      setTimeout(()=>e.classList.remove("llamado"),700);
+    });
   }
 
-  // Próximos turnos
-  const lista=document.getElementById("listaProximos");
-  lista.innerHTML="";
-  const proximos=espera.slice(0,maxMostrar);
-  proximos.forEach(t=>{
-    const div=document.createElement("div");
-    div.className="turnoCard "+t.tarjeta;
-    div.innerHTML=`<b>#${t.turno}</b><br>${t.nombre}<br>${t.mostrador}`;
-    lista.appendChild(div);
+  listaProximos.innerHTML="";
+  espera.slice(0,5).forEach(t=>{
+    listaProximos.innerHTML+=`
+      <div class="turnoCard ${t.tarjeta}">
+        <b>#${t.turno}</b><br>${t.nombre}<br>${t.mostrador}
+      </div>`;
   });
 }
 
-// Escucha cambios
-window.addEventListener('storage',function(e){
-  if(e.key==='ultimoLlamado'||e.key==='espera'||e.key==='limpiarPublico'){
-    if(e.key==='limpiarPublico'){
-      document.getElementById("proximoTurno").innerText='0';
-      document.getElementById("nombre").innerText='---';
-      document.getElementById("mostrador").innerText='---';
-      document.getElementById("listaProximos").innerHTML="";
-      localStorage.removeItem('limpiarPublico');
-    } else actualizarPantalla();
+window.addEventListener("storage",e=>{
+  if(e.key==="limpiarPublico"){
+    proximoTurno.innerText="0";
+    nombre.innerText="---";
+    mostrador.innerText="---";
+    listaProximos.innerHTML="";
   }
 });
 
-actualizarPantalla();
-setInterval(actualizarPantalla,1);
+actualizar();
+setInterval(actualizar,3000);
 </script>
 </body>
 </html>
