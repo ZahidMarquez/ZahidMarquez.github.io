@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <title>Pantalla Centurion</title>
+<link rel="icon" href="z(1).png" type="image/png">
 
 <style>
 body{
   margin:0;
   font-family:Segoe UI,sans-serif;
-  background:#4b3b00;
+  background:#0B0B0B;
   color:#fff;
   text-align:center;
 }
@@ -23,24 +24,28 @@ h1{font-size:50px;margin:20px 0;}
   justify-content:center;
   gap:20px;
 }
+
 .turnoCard{
-  background:#1f1f1f;
   padding:20px;
   border-radius:10px;
   width:200px;
+  background:#0B0B0B;
+  border:2px solid #C9CCD6;
 }
-.Centurion{border-left:8px solid gold;}
 </style>
 </head>
 
 <body>
 <h1>✈ CENTURION</h1>
+
 <div id="proximoTurno">0</div>
 <div id="nombre">---</div>
 <div id="mostrador">---</div>
 <div class="listaTurnos" id="lista"></div>
 
 <script>
+const prioridad={Centurion:1,Platino:2,Aeromexico:3};
+
 function limpiarPantalla(){
   proximoTurno.innerText="0";
   nombre.innerText="---";
@@ -49,26 +54,25 @@ function limpiarPantalla(){
 }
 
 function actualizar(){
-  const limpiar = localStorage.getItem("limpiarPublico");
-  if(limpiar){
+  if(localStorage.getItem("limpiarPublico")){
     limpiarPantalla();
     localStorage.removeItem("limpiarPublico");
   }
 
-  const ultimo = JSON.parse(localStorage.getItem("ultimoLlamado"));
-  const espera = (JSON.parse(localStorage.getItem("espera")) || [])
-    .filter(p => p.mostrador==="Centurion");
+  const ultimo=JSON.parse(localStorage.getItem("ultimoLlamado"));
+  let espera=(JSON.parse(localStorage.getItem("espera"))||[])
+    .filter(p=>p.tarjeta==="Centurion");
 
-  if(ultimo && ultimo.mostrador==="Centurion"){
-    proximoTurno.innerText = ultimo.turno;
-    nombre.innerText = ultimo.nombre;
-    mostrador.innerText = ultimo.mostrador;
+  if(ultimo && ultimo.tarjeta==="Centurion"){
+    proximoTurno.innerText=ultimo.turno;
+    nombre.innerText=ultimo.nombre;
+    mostrador.innerText=ultimo.mostrador;
   }
 
   lista.innerHTML="";
   espera.slice(0,5).forEach(p=>{
     lista.innerHTML+=`
-      <div class="turnoCard Centurion">
+      <div class="turnoCard">
         <b>#${p.turno}</b><br>${p.nombre}
       </div>`;
   });
