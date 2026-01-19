@@ -26,3 +26,23 @@ table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
 th{background:var(--azul);color:#fff;padding:6px;}
 td{border:1px solid #ccc;padding:5px;text-align:center;}
 .form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;}
+
+/* 🎨 COLORES POR TARJETA */
+.turnoCard.Centurion{
+  background:#0B0B0B;
+  color:#FFFFFF;
+  border-left:8px solid #C9CCD6;
+}
+
+.turnoCard.Platino{
+  background:#ec4899;   /* Rosa */
+  color:#FFFFFF;
+  border-left:8px solid #be185d;
+}
+
+.turnoCard.Aeromexico{
+  background:#16a34a;   /* Verde */
+  color:#FFFFFF;
+  border-left:8px solid #065f46;
+}
+
