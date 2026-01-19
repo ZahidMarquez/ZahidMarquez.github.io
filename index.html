@@ -3,43 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <title>LISTA DE ESPERA GZOM</title>
+<link rel="icon" href="z(1).png" type="image/png">
 
 <style>
 :root{
-  --azul:#0b2a5b; --gris:#eef1f5; --verde:#1b8f4c;
-  --rojo:#b02a2a; --amarillo:#e8a317; --morado:#6b2cbf;
+  --azul:#006FCF;
+  --gris:#F4F6F9;
+  --verde:#007A5A;
+  --rojo:#C62828;
+  --amarillo:#F5C400;
+  --morado:#003A8F;
 }
 
-body{margin:0;font-family:Segoe UI,sans-serif;background:var(--gris);color:#000;}
-body.dark{background:#121212;color:#fff;}
-header{background:var(--azul);color:#fff;padding:14px;text-align:center;font-size:22px;}
+body{
+  margin:0;
+  font-family:Segoe UI,sans-serif;
+  background:var(--gris);
+  color:#000;
+}
+body.dark{background:#0B0B0B;color:#fff;}
+
+header{
+  background:var(--azul);
+  color:#fff;
+  padding:14px;
+  text-align:center;
+  font-size:22px;
+}
 
 .container{max-width:1400px;margin:auto;padding:16px;}
-.card{background:#fff;padding:14px;border-radius:6px;margin-bottom:14px;box-shadow:0 4px 10px rgba(0,0,0,.1);}
-body.dark .card{background:#1f1f1f;}
-label{display:block;font-weight:600;font-size:12px;margin-bottom:4px;}
-input,select{padding:8px;font-size:14px;width:100%;height:36px;box-sizing:border-box;border-radius:4px;}
-button{border:none;padding:8px 12px;border-radius:4px;color:#fff;cursor:pointer;margin:4px;}
+
+.card{
+  background:#fff;
+  padding:14px;
+  border-radius:6px;
+  margin-bottom:14px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+body.dark .card{background:#111827;}
+
+label{
+  display:block;
+  font-weight:600;
+  font-size:12px;
+  margin-bottom:4px;
+}
+
+input,select{
+  padding:8px;
+  font-size:14px;
+  width:100%;
+  height:36px;
+  box-sizing:border-box;
+  border-radius:4px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  align-items:end;
+}
+
+@media(max-width:900px){
+  .form-grid{grid-template-columns:1fr;}
+}
+
+button{
+  border:none;
+  padding:8px 12px;
+  border-radius:4px;
+  color:#fff;
+  cursor:pointer;
+  margin:4px;
+}
+
 .primary{background:var(--azul);}
 .llamar{background:var(--verde);}
-.finalizar{background:#3a5aa8;}
-.retirada{background:#777;}
+.finalizar{background:var(--morado);}
+.retirada{background:#6b7280;}
 .rojo{background:var(--rojo);}
-.form-grid{display:grid;grid-template-columns:minmax(260px,2.5fr) minmax(90px,0.8fr) minmax(160px,1.2fr) minmax(160px,1.2fr);gap:14px;align-items:end;}
-@media(max-width:900px){.form-grid{grid-template-columns:1fr;}}
+
 .stats-container{display:flex;gap:12px;flex-wrap:wrap;}
-.stat-card{flex:1 1 220px;padding:12px;border-radius:8px;color:#fff;text-align:center;}
+.stat-card{
+  flex:1 1 220px;
+  padding:12px;
+  border-radius:8px;
+  color:#fff;
+  text-align:center;
+}
 .stat-total{background:var(--azul);}
 .stat-pax{background:var(--verde);}
 .stat-tarjeta{background:var(--amarillo);color:#000;}
 .stat-promedio{background:var(--morado);}
-.stat-atendidos{background:#555;}
-.stat-mostrador{background:#444;}
+.stat-atendidos{background:#374151;}
+.stat-mostrador{background:#1F2933;}
+
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{background:var(--azul);color:#fff;padding:6px;}
 td{border:1px solid #ccc;padding:5px;text-align:center;}
+
+#toggleAtendidos{
+  cursor:pointer;
+  background:#1F2933;
+  color:#fff;
+  padding:6px;
+  border-radius:4px;
+}
 #atendidosContent{display:none;}
-#toggleAtendidos{cursor:pointer;background:#444;color:#fff;padding:6px;border-radius:4px;}
 </style>
 </head>
 
@@ -258,31 +329,44 @@ function abrirPantalla(tipo){
 
 function exportarExcel(){
   const data=[["Turno","Nombre","Pax","Tarjeta","Mostrador","Registro","Llamada","Estado"]];
+  
   [...espera,...historial].forEach(p=>{
     data.push([p.turno,p.nombre,p.cantidad,p.tarjeta,p.mostrador,p.horaRegistro,p.horaLlamada,p.estado]);
   });
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet(data);
-  XLSX.utils.book_append_sheet(wb,ws,"ListaEspera");
-  XLSX.writeFile(wb,"ListaEspera.xlsx");
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, "ListaEspera");
+
+  // Obtener fecha actual en formato YYYY-MM-DD
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0'); // meses empiezan en 0
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  const fecha = `${yyyy}-${mm}-${dd}`;
+
+  XLSX.writeFile(wb, `lista_de_espera_${fecha}.xlsx`);
 }
 
+
 function borrarHistorial(){
-  if(confirm("¿Borrar historial y limpiar pantallas?")){
-    historial = [];
-    espera = [];
-    turnoActual = 1;
+  if(confirm("¿Borrar TODO el historial y limpiar todas las pantallas?")){
+    
+    // BORRAR TODA LA LOCAL STORAGE
+    localStorage.clear();
 
-    localStorage.setItem("historial", "[]");
-    localStorage.setItem("espera", "[]");
-    localStorage.setItem("turnoActual", "1");
-
-    // ⚡ señal para pantallas
+    // SEÑAL GLOBAL PARA TODAS LAS PANTALLAS
     localStorage.setItem("limpiarPublico", Date.now().toString());
+
+    // REINICIAR VARIABLES EN MEMORIA
+    espera = [];
+    historial = [];
+    turnoActual = 1;
 
     render();
   }
 }
+
 
 function toggleDark(){document.body.classList.toggle("dark");}
 
