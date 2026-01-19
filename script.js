@@ -1,124 +1,218 @@
-let espera=JSON.parse(localStorage.getItem("espera"))||[];
-let historial=JSON.parse(localStorage.getItem("historial"))||[];
-let turnoActual=JSON.parse(localStorage.getItem("turnoActual"))||1;
+// -----------------------------
+// VARIABLES INICIALES
+// -----------------------------
+let espera = JSON.parse(localStorage.getItem("espera")) || [];
+let historial = JSON.parse(localStorage.getItem("historial")) || [];
+let turnoActual = JSON.parse(localStorage.getItem("turnoActual")) || 1;
+let atendidosVisible = false;
 
-function registrar(){
-  const nombre=document.getElementById("nombre").value.trim();
-  const cantidad=parseInt(document.getElementById("cantidad").value);
-  const tarjeta=document.getElementById("tarjeta").value;
-  const mostrador=document.getElementById("mostrador").value;
-  if(!nombre||!cantidad){alert("Completa los datos");return;}
-  const horaRegistro=new Date().toISOString();
-  const pasajero={turno:turnoActual++,nombre,cantidad,tarjeta,mostrador,estado:"Pendiente",horaRegistro,horaLlamada:null};
-  espera.push(pasajero);
-  localStorage.setItem("espera",JSON.stringify(espera));
-  localStorage.setItem("turnoActual",turnoActual);
-  document.getElementById("nombre").value="";
-  document.getElementById("cantidad").value=1;
+// PRIORIDAD POR TARJETA
+const prioridad = { Centurion: 1, Platino: 2, Aeromexico: 3 };
+
+// -----------------------------
+// FUNCIONES DE REGISTRO
+// -----------------------------
+function registrar() {
+  if (!nombre.value) return alert("Nombre requerido");
+  const p = {
+    turno: turnoActual++,
+    nombre: nombre.value,
+    cantidad: +cantidad.value,
+    tarjeta: tarjeta.value,
+    mostrador: mostrador.value,
+    estado: "Pendiente",
+    horaRegistro: new Date().toISOString(),
+    horaLlamada: null
+  };
+  espera.push(p);
+  guardar();
+  imprimirTicket(p);
+  nombre.value = "";
+  cantidad.value = 1;
   render();
-  imprimirTicketTermico(pasajero);
 }
 
-function abrirPantalla(){window.open("publico_avanzado.html","pantalla","fullscreen=yes");}
+// -----------------------------
+// FUNCIONES DE LLAMADA / FINALIZAR / RETIRADA
+// -----------------------------
+function llamar(i) {
+  espera[i].estado = "Llamado";
+  espera[i].horaLlamada = new Date().toISOString();
+  localStorage.setItem("ultimoLlamado", JSON.stringify(espera[i]));
+  speechSynthesis.speak(
+    new SpeechSynthesisUtterance(
+      `Turno ${espera[i].turno}, mostrador ${espera[i].mostrador}`
+    )
+  );
+  guardar();
+  render();
+}
 
-function render(){
-  tabla.innerHTML="";
-  espera.forEach((p,i)=>{
-    tabla.innerHTML+=`
-    <tr>
-      <td>${p.turno}</td>
-      <td>${p.nombre}</td>
-      <td>${p.cantidad}</td>
-      <td>${p.tarjeta}</td>
-      <td>${p.mostrador}</td>
-      <td>${new Date(p.horaRegistro).toLocaleTimeString()}</td>
-      <td>${p.horaLlamada?p.horaLlamada.split('T')[1].slice(0,5):'---'}</td>
-      <td>${p.estado}</td>
-      <td>
-        <button class="llamar" onclick="llamar(${i})">Llamar</button>
-        <button class="finalizar" onclick="finalizar(${i})">Finalizar</button>
-      </td>
-    </tr>`;
+function finalizar(i) {
+  const p = espera.splice(i, 1)[0];
+  p.estado = "Finalizado";
+  if (!p.horaLlamada) p.horaLlamada = new Date().toISOString();
+  historial.push(p);
+  guardar();
+  render();
+}
+
+function retirada(i) {
+  const p = espera.splice(i, 1)[0];
+  p.estado = "Retirado";
+  historial.push(p);
+  guardar();
+  render();
+}
+
+// -----------------------------
+// FUNCION RENDERIZAR TABLAS
+// -----------------------------
+function render() {
+  // TABLA PRINCIPAL
+  tabla.innerHTML = "";
+  // ORDENAR POR PRIORIDAD DE TARJETA
+  espera.sort((a, b) => prioridad[a.tarjeta] - prioridad[b.tarjeta]);
+  
+  espera.forEach((p, i) => {
+    tabla.innerHTML += `
+      <tr>
+        <td>${p.turno}</td><td>${p.nombre}</td><td>${p.cantidad}</td>
+        <td>${p.tarjeta}</td><td>${p.mostrador}</td>
+        <td>${new Date(p.horaRegistro).toLocaleTimeString()}</td>
+        <td>${p.horaLlamada ? new Date(p.horaLlamada).toLocaleTimeString() : '---'}</td>
+        <td>${p.estado}</td>
+        <td>
+          <button class="llamar" onclick="llamar(${i})">Llamar</button>
+          <button class="finalizar" onclick="finalizar(${i})">Finalizar</button>
+          <button class="retirada" onclick="retirada(${i})">Retirada</button>
+        </td>
+      </tr>`;
   });
 
-  document.getElementById("totalRegistros").innerText=espera.length;
-  document.getElementById("totalPax").innerText=espera.reduce((a,b)=>a+b.cantidad,0);
-  document.getElementById("countCenturion").innerText=espera.filter(p=>p.tarjeta==="Centurion").length;
-  document.getElementById("countPlatino").innerText=espera.filter(p=>p.tarjeta==="Platino").length;
-  document.getElementById("countAeromexico").innerText=espera.filter(p=>p.tarjeta==="Aeromexico").length;
+  // TABLA ATENDIDOS
+  const atendidos = historial.filter(p => p.estado === "Finalizado");
+  tablaAtendidos.innerHTML = "";
 
-  const tiempos=historial.filter(h=>h.horaRegistro && h.horaLlamada).map(h=> (new Date(h.horaLlamada)-new Date(h.horaRegistro))/60000 );
-  document.getElementById("promedioEspera").innerText=tiempos.length? (tiempos.reduce((a,b)=>a+b,0)/tiempos.length).toFixed(1):0;
+  let sumG = 0, sumP = 0, sumC = 0, cG = 0, cP = 0, cC = 0;
+  atendidos.forEach(p => {
+    const min = (new Date(p.horaLlamada) - new Date(p.horaRegistro)) / 60000;
+    tablaAtendidos.innerHTML += `
+      <tr>
+        <td>${p.turno}</td><td>${p.nombre}</td><td>${p.cantidad}</td>
+        <td>${p.tarjeta}</td><td>${p.mostrador}</td><td>${min.toFixed(1)}</td>
+      </tr>`;
+    sumG += min; cG++;
+    if (p.mostrador === "Platino") { sumP += min; cP++; }
+    if (p.mostrador === "Centurion") { sumC += min; cC++; }
+  });
+
+  // ESTADÍSTICAS
+  totalRegistros.innerText = espera.length;
+  totalPax.innerText = espera.reduce((a, b) => a + b.cantidad, 0);
+  countCenturion.innerText = espera.filter(p => p.tarjeta === "Centurion").length;
+  countPlatino.innerText = espera.filter(p => p.tarjeta === "Platino").length;
+  countAeromexico.innerText = espera.filter(p => p.tarjeta === "Aeromexico").length;
+
+  promedioEspera.innerText = cG ? (sumG / cG).toFixed(1) : 0;
+  promedioPlatino.innerText = cP ? (sumP / cP).toFixed(1) : 0;
+  promedioCenturion.innerText = cC ? (sumC / cC).toFixed(1) : 0;
+  totalAtendidos.innerText = atendidos.reduce((a, b) => a + b.cantidad, 0);
 }
 
-function llamar(i){ 
-  const ahora=new Date().toISOString(); 
-  espera[i].estado="Llamado"; 
-  espera[i].horaLlamada=ahora; 
-  localStorage.setItem("espera",JSON.stringify(espera)); 
-  speechSynthesis.speak(new SpeechSynthesisUtterance(`Turno ${espera[i].turno}, mostrador ${espera[i].mostrador}`)); 
-  render(); 
+// -----------------------------
+// TOGGLE ATENDIDOS
+// -----------------------------
+function toggleAtendidos() {
+  atendidosVisible = !atendidosVisible;
+  atendidosContent.style.display = atendidosVisible ? "block" : "none";
+  toggleAtendidos.innerText = atendidosVisible ? "Pasajeros Atendidos ▲" : "Pasajeros Atendidos ▼";
 }
 
-function finalizar(i){ 
-  const p=espera.splice(i,1)[0]; 
-  if(!p.horaLlamada)p.horaLlamada=new Date().toISOString(); 
-  p.estado="Finalizado"; 
-  historial.push(p); 
-  localStorage.setItem("espera",JSON.stringify(espera)); 
-  localStorage.setItem("historial",JSON.stringify(historial)); 
-  render(); 
-}
-
-function borrarHistorial(){ 
-  if(confirm("¿Deseas borrar todo el historial de turnos finalizados?")){ 
-    historial=[]; 
-    localStorage.setItem("historial",JSON.stringify(historial)); 
-    localStorage.setItem("limpiarPublico","1"); 
-    alert("Historial borrado correctamente"); 
-  } 
-}
-
-function toggleDark(){document.body.classList.toggle("dark");}
-
-function imprimirTicketTermico(p){ 
-  const win=window.open("","_blank","width=300,height=400"); 
-  win.document.write(`<pre style="font-family:monospace;font-size:14px;">
-✈ AIRPORT WAITING
-------------------------------
+// -----------------------------
+// IMPRESIÓN DE TICKET
+// -----------------------------
+function imprimirTicket(p) {
+  const w = window.open("", "", "width=300,height=400");
+  w.document.write(`<pre>
+✈ LISTA DE ESPERA
 Turno: ${p.turno}
 Nombre: ${p.nombre}
 Pax: ${p.cantidad}
 Tarjeta: ${p.tarjeta}
 Mostrador: ${p.mostrador}
-Fecha: ${new Date().toLocaleString()}
-------------------------------
-Gracias por su espera
-</pre>`); 
-  win.document.close(); win.focus(); win.print(); win.close(); 
+${new Date().toLocaleString()}
+</pre>`);
+  w.print(); w.close();
 }
 
-function exportarExcel(){
-  const wb=XLSX.utils.book_new();
-  const hoy=new Date();
-  const fechaStr=`${String(hoy.getDate()).padStart(2,'0')}-${String(hoy.getMonth()+1).padStart(2,'0')}-${hoy.getFullYear()}`;
-  const datos=historial.map(p=>({
-    Turno:p.turno,Nombre:p.nombre,Pax:p.cantidad,
-    Tarjeta:p.tarjeta,Mostrador:p.mostrador,
-    Hora_Registro:p.horaRegistro,Hora_Llamada:p.horaLlamada,
-    Estado:p.estado
-  }));
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(datos),"Datos");
+// -----------------------------
+// ABRIR PANTALLAS
+// -----------------------------
+function abrirPantalla(tipo) {
+  const map = {
+    general: "pantalla_general.html",
+    platino: "pantalla_platino.html",
+    centurion: "pantalla_centurion.html"
+  };
+  window.open(map[tipo], tipo, "fullscreen=yes");
+}
 
-  const estadisticas=[];
-  ["Centurion","Platino","Aeromexico"].forEach(t=>{
-    const total=historial.filter(p=>p.tarjeta===t).length;
-    const pax=historial.filter(p=>p.tarjeta===t).reduce((a,b)=>a+b.cantidad,0);
-    estadisticas.push({Tarjeta:t,Total_Turnos:total,Total_Pax:pax});
+// -----------------------------
+// EXPORTAR EXCEL
+// -----------------------------
+function exportarExcel() {
+  const data = [["Turno","Nombre","Pax","Tarjeta","Mostrador","Registro","Llamada","Estado"]];
+  [...espera, ...historial].forEach(p => {
+    data.push([p.turno, p.nombre, p.cantidad, p.tarjeta, p.mostrador, p.horaRegistro, p.horaLlamada, p.estado]);
   });
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(estadisticas),"Estadísticas");
 
-  XLSX.writeFile(wb,`LISTA DE ESPERA - ${fechaStr}.xlsx`);
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, "ListaEspera");
+
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  const fecha = `${yyyy}-${mm}-${dd}`;
+
+  XLSX.writeFile(wb, `lista_de_espera_${fecha}.xlsx`);
 }
 
+// -----------------------------
+// BORRAR HISTORIAL COMPLETO
+// -----------------------------
+function borrarHistorial() {
+  if(confirm("¿Borrar historial y limpiar pantallas?")){
+    historial = [];
+    espera = [];
+    turnoActual = 1;
+    // LIMPIAR LOCALSTORAGE COMPLETO
+    localStorage.clear();
+    // señal para pantallas
+    localStorage.setItem("limpiarPublico", Date.now().toString());
+    render();
+  }
+}
+
+// -----------------------------
+// DARK MODE
+// -----------------------------
+function toggleDark() {
+  document.body.classList.toggle("dark");
+}
+
+// -----------------------------
+// GUARDAR DATOS
+// -----------------------------
+function guardar() {
+  localStorage.setItem("espera", JSON.stringify(espera));
+  localStorage.setItem("historial", JSON.stringify(historial));
+  localStorage.setItem("turnoActual", turnoActual);
+}
+
+// -----------------------------
+// RENDER INICIAL
+// -----------------------------
 render();
