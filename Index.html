@@ -3,50 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <title>LISTA DE ESPERA GZOM</title>
+<link rel="icon" href="z(1).png" type="image/png">
 
 <style>
 :root{
-  --azul:#0b2a5b; --gris:#eef1f5; --verde:#1b8f4c;
-  --rojo:#b02a2a; --amarillo:#e8a317; --morado:#6b2cbf;
+  --azul:#006FCF;
+  --gris:#F4F6F9;
+  --verde:#007A5A;
+  --rojo:#C62828;
+  --amarillo:#F5C400;
+  --morado:#003A8F;
 }
 
-body{margin:0;font-family:Segoe UI,sans-serif;background:var(--gris);color:#000;}
-body.dark{background:#121212;color:#fff;}
+body{
+  margin:0;
+  font-family:Segoe UI,sans-serif;
+  background:var(--gris);
+  color:#000;
+}
+body.dark{background:#0B0B0B;color:#fff;}
 
-header{background:var(--azul);color:#fff;padding:14px;text-align:center;font-size:22px;}
+header{
+  background:var(--azul);
+  color:#fff;
+  padding:14px;
+  text-align:center;
+  font-size:22px;
+}
 
-.container{max-width:1300px;margin:auto;padding:16px;}
-.card{background:#fff;padding:14px;border-radius:6px;margin-bottom:14px;box-shadow:0 4px 10px rgba(0,0,0,.1);}
-body.dark .card{background:#1f1f1f;}
+.container{max-width:1400px;margin:auto;padding:16px;}
 
-input,select{padding:6px;font-size:13px;width:100%;margin-top:4px;border-radius:4px;}
-label{font-weight:600;font-size:12px;}
+.card{
+  background:#fff;
+  padding:14px;
+  border-radius:6px;
+  margin-bottom:14px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+body.dark .card{background:#111827;}
 
-button{border:none;padding:8px 12px;border-radius:4px;color:#fff;cursor:pointer;margin-top:6px;margin-right:6px;}
+label{
+  display:block;
+  font-weight:600;
+  font-size:12px;
+  margin-bottom:4px;
+}
+
+input,select{
+  padding:8px;
+  font-size:14px;
+  width:100%;
+  height:36px;
+  box-sizing:border-box;
+  border-radius:4px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  align-items:end;
+}
+
+@media(max-width:900px){
+  .form-grid{grid-template-columns:1fr;}
+}
+
+button{
+  border:none;
+  padding:8px 12px;
+  border-radius:4px;
+  color:#fff;
+  cursor:pointer;
+  margin:4px;
+}
+
 .primary{background:var(--azul);}
 .llamar{background:var(--verde);}
-.finalizar{background:#3a5aa8;}
-.retirada{background:#777;}
+.finalizar{background:var(--morado);}
+.retirada{background:#6b7280;}
 .rojo{background:var(--rojo);}
 
 .stats-container{display:flex;gap:12px;flex-wrap:wrap;}
-.stat-card{flex:1 1 200px;padding:12px;border-radius:8px;color:#fff;text-align:center;}
+.stat-card{
+  flex:1 1 220px;
+  padding:12px;
+  border-radius:8px;
+  color:#fff;
+  text-align:center;
+}
 .stat-total{background:var(--azul);}
 .stat-pax{background:var(--verde);}
 .stat-tarjeta{background:var(--amarillo);color:#000;}
 .stat-promedio{background:var(--morado);}
-.stat-atendidos{background:#888;}
+.stat-atendidos{background:#374151;}
+.stat-mostrador{background:#1F2933;}
 
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{background:var(--azul);color:#fff;padding:6px;}
 td{border:1px solid #ccc;padding:5px;text-align:center;}
 
-.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;}
-@media(max-width:900px){.form-grid{grid-template-columns:1fr;}}
-
-/* Atendidos plegable */
-#atendidosContent{display:none;margin-top:10px;}
-#atendidosToggle{background:#555;cursor:pointer;}
+#toggleAtendidos{
+  cursor:pointer;
+  background:#1F2933;
+  color:#fff;
+  padding:6px;
+  border-radius:4px;
+}
+#atendidosContent{display:none;}
 </style>
 </head>
 
@@ -55,64 +119,80 @@ td{border:1px solid #ccc;padding:5px;text-align:center;}
 
 <div class="container">
 
-<!-- FORMULARIO -->
 <div class="card">
   <div class="form-grid">
-    <div><label>Nombre</label><input id="nombre" autocomplete="off"></div>
-    <div><label>Pax</label><input id="cantidad" type="number" min="1" value="1"></div>
-    <div><label>Tarjeta</label>
-      <select id="tarjeta"><option>Centurion</option><option>Platino</option><option>Aeromexico</option></select>
+    <div>
+      <label>Nombre</label>
+      <input id="nombre" autocomplete="off">
     </div>
-    <div><label>Mostrador</label>
-      <select id="mostrador"><option>Centurion</option><option>Platino</option></select>
+    <div>
+      <label>Pax</label>
+      <input id="cantidad" type="number" min="1" value="1">
+    </div>
+    <div>
+      <label>Tarjeta</label>
+      <select id="tarjeta">
+        <option>Centurion</option>
+        <option>Platino</option>
+        <option>Aeromexico</option>
+      </select>
+    </div>
+    <div>
+      <label>Mostrador</label>
+      <select id="mostrador">
+        <option>Centurion</option>
+        <option>Platino</option>
+      </select>
     </div>
   </div>
   <button class="primary" onclick="registrar()">➕ Registrar e Imprimir Ticket</button>
 </div>
 
-<!-- BOTONES -->
 <div class="card">
-  <button class="primary" onclick="abrirPantalla()">📺 Pantalla Pública</button>
-  <button class="primary" onclick="exportarExcel()">📊 Exportar Excel</button>
-  <button class="rojo" onclick="borrarHistorial()">🗑️ Borrar Historial</button>
-  <button class="primary" onclick="toggleDark()">🌙 Modo Oscuro</button>
+  <button class="primary" onclick="abrirPantalla('general')">📺 General</button>
+  <button class="primary" onclick="abrirPantalla('platino')">📺 Platino</button>
+  <button class="primary" onclick="abrirPantalla('centurion')">📺 Centurion</button>
+  <button class="primary" onclick="exportarExcel()">📊 Excel</button>
+  <button class="rojo" onclick="borrarHistorial()">🗑️ Historial</button>
+  <button class="primary" onclick="toggleDark()">🌙 Oscuro</button>
 </div>
 
-<!-- ESTADÍSTICAS -->
 <div class="card stats-container">
-  <div class="stat-card stat-total"><p>Turnos en espera</p><h3 id="totalRegistros">0</h3></div>
-  <div class="stat-card stat-pax"><p>Total pasajeros</p><h3 id="totalPax">0</h3></div>
+  <div class="stat-card stat-total">En espera<br><h3 id="totalRegistros">0</h3></div>
+  <div class="stat-card stat-pax">Pax en espera<br><h3 id="totalPax">0</h3></div>
   <div class="stat-card stat-tarjeta">
-    <p>Tarjetas</p>
-    <h3>Cent: <span id="countCenturion">0</span></h3>
-    <h3>Plat: <span id="countPlatino">0</span></h3>
-    <h3>Aero: <span id="countAeromexico">0</span></h3>
+    Tarjetas<br>
+    Centurion: <span id="countCenturion">0</span><br>
+    Platino: <span id="countPlatino">0</span><br>
+    Aero: <span id="countAeromexico">0</span>
   </div>
-  <div class="stat-card stat-promedio"><p>Promedio espera (min)</p><h3 id="promedioEspera">0</h3></div>
-  <div class="stat-card stat-atendidos"><p>Pasajeros atendidos</p><h3 id="totalAtendidos">0</h3></div>
+  <div class="stat-card stat-promedio">Promedio General<br><h3 id="promedioEspera">0</h3></div>
+  <div class="stat-card stat-mostrador">Prom. Platino<br><h3 id="promedioPlatino">0</h3></div>
+  <div class="stat-card stat-mostrador">Prom. Centurion<br><h3 id="promedioCenturion">0</h3></div>
+  <div class="stat-card stat-atendidos">Pax Atendidos<br><h3 id="totalAtendidos">0</h3></div>
 </div>
 
-<!-- TABLA ESPERA -->
 <div class="card">
 <h3>Turnos en espera</h3>
 <table>
 <thead>
 <tr>
-<th>Turno</th><th>Nombre</th><th>Pax</th><th>Tarjeta</th><th>Mostrador</th><th>Registro</th><th>Llamada</th><th>Estado</th><th>Acciones</th>
+<th>Turno</th><th>Nombre</th><th>Pax</th><th>Tarjeta</th>
+<th>Mostrador</th><th>Registro</th><th>Llamada</th><th>Estado</th><th>Acciones</th>
 </tr>
 </thead>
 <tbody id="tabla"></tbody>
 </table>
 </div>
 
-<!-- TABLA ATENDIDOS -->
 <div class="card">
-<h3 id="atendidosToggle" onclick="toggleAtendidos()">Pasajeros Atendidos ▼</h3>
+<div id="toggleAtendidos" onclick="toggleAtendidos()">Pasajeros Atendidos ▼</div>
 <div id="atendidosContent">
 <table>
 <thead>
 <tr>
-<th>Turno</th><th>Nombre</th><th>Pax</th><th>Tarjeta</th><th>Mostrador</th><th>Espera (min)</th>
+<th>Turno</th><th>Nombre</th><th>Pax</th><th>Tarjeta</th>
+<th>Mostrador</th><th>Espera (min)</th>
 </tr>
 </thead>
 <tbody id="tablaAtendidos"></tbody>
@@ -125,103 +205,61 @@ td{border:1px solid #ccc;padding:5px;text-align:center;}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-const nombreInput=document.getElementById("nombre");
-const cantidadInput=document.getElementById("cantidad");
-const tarjeta=document.getElementById("tarjeta");
-const mostrador=document.getElementById("mostrador");
-const tabla=document.getElementById("tabla");
-const tablaAtendidos=document.getElementById("tablaAtendidos");
-const totalRegistros=document.getElementById("totalRegistros");
-const totalPax=document.getElementById("totalPax");
-const countCenturion=document.getElementById("countCenturion");
-const countPlatino=document.getElementById("countPlatino");
-const countAeromexico=document.getElementById("countAeromexico");
-const promedioEspera=document.getElementById("promedioEspera");
-const totalAtendidos=document.getElementById("totalAtendidos");
-const atendidosToggle=document.getElementById("atendidosToggle");
-const atendidosContent=document.getElementById("atendidosContent");
-
-let espera=JSON.parse(localStorage.getItem("espera"))||[];
-let historial=JSON.parse(localStorage.getItem("historial"))||[];
-let turnoActual=JSON.parse(localStorage.getItem("turnoActual"))||1;
-
-let pantalla=null;
-let atendidosAbierto=true;
-
-function toggleAtendidos(){
-  atendidosAbierto=!atendidosAbierto;
-  atendidosContent.style.display=atendidosAbierto?"block":"none";
-  atendidosToggle.innerText=atendidosAbierto?"Pasajeros Atendidos ▼":"Pasajeros Atendidos ▲";
-}
+let espera = JSON.parse(localStorage.getItem("espera")) || [];
+let historial = JSON.parse(localStorage.getItem("historial")) || [];
+let turnoActual = JSON.parse(localStorage.getItem("turnoActual")) || 1;
+let atendidosVisible = false;
 
 function registrar(){
-  const nombre=nombreInput.value.trim();
-  const cantidad=parseInt(cantidadInput.value);
-  if(!nombre||cantidad<1){alert("Datos incompletos");return;}
-
-  const pasajero={
-    turno:turnoActual++,
-    nombre,
-    cantidad,
-    tarjeta:tarjeta.value,
-    mostrador:mostrador.value,
-    estado:"Pendiente",
-    horaRegistro:new Date().toISOString(),
-    horaLlamada:null
+  if(!nombre.value) return alert("Nombre requerido");
+  const p = {
+    turno: turnoActual++,
+    nombre: nombre.value,
+    cantidad: +cantidad.value,
+    tarjeta: tarjeta.value,
+    mostrador: mostrador.value,
+    estado: "Pendiente",
+    horaRegistro: new Date().toISOString(),
+    horaLlamada: null
   };
-
-  espera.push(pasajero);
-  guardarDatos();
-  imprimirTicket(pasajero);
-  nombreInput.value="";
-  cantidadInput.value=1;
+  espera.push(p);
+  guardar();
+  imprimirTicket(p);
+  nombre.value = ""; cantidad.value = 1;
   render();
 }
 
 function llamar(i){
-  const ahora=new Date().toISOString();
   espera[i].estado="Llamado";
-  espera[i].horaLlamada=ahora;
+  espera[i].horaLlamada=new Date().toISOString();
   localStorage.setItem("ultimoLlamado",JSON.stringify(espera[i]));
-  speechSynthesis.speak(
-    new SpeechSynthesisUtterance(`Turno ${espera[i].turno}, mostrador ${espera[i].mostrador}`)
-  );
-  guardarDatos();
-  render();
+  speechSynthesis.speak(new SpeechSynthesisUtterance(`Turno ${espera[i].turno}, mostrador ${espera[i].mostrador}`));
+  guardar(); render();
 }
 
 function finalizar(i){
-  const p=espera.splice(i,1)[0];
+  const p = espera.splice(i,1)[0];
+  p.estado = "Finalizado";
   if(!p.horaLlamada)p.horaLlamada=new Date().toISOString();
-  p.estado="Finalizado";
   historial.push(p);
-  guardarDatos();
-  render();
+  guardar(); render();
 }
 
 function retirada(i){
-  const p=espera.splice(i,1)[0];
+  const p = espera.splice(i,1)[0];
   p.estado="Retirado";
   historial.push(p);
-  guardarDatos();
-  render();
-}
-
-function guardarDatos(){
-  localStorage.setItem("espera",JSON.stringify(espera));
-  localStorage.setItem("historial",JSON.stringify(historial));
-  localStorage.setItem("turnoActual",turnoActual);
-  if(pantalla) actualizarPantalla();
+  guardar(); render();
 }
 
 function render(){
-  // tabla de espera
   tabla.innerHTML="";
   espera.forEach((p,i)=>{
     tabla.innerHTML+=`
     <tr>
-      <td>${p.turno}</td><td>${p.nombre}</td><td>${p.cantidad}</td><td>${p.tarjeta}</td>
-      <td>${p.mostrador}</td><td>${new Date(p.horaRegistro).toLocaleTimeString()}</td>
+      <td>${p.turno}</td><td>${p.nombre}</td><td>${p.cantidad}</td>
+      <td>${p.tarjeta}</td><td>${p.mostrador}</td>
+      <td>${new Date(p.horaRegistro).toLocaleTimeString()}</td>
       <td>${p.horaLlamada?new Date(p.horaLlamada).toLocaleTimeString():'---'}</td>
       <td>${p.estado}</td>
       <td>
@@ -232,46 +270,42 @@ function render(){
     </tr>`;
   });
 
-  // estadísticas
-  totalRegistros.innerText=espera.length;
-  totalPax.innerText=espera.reduce((a,b)=>a+b.cantidad,0);
-  countCenturion.innerText=espera.filter(p=>p.tarjeta==="Centurion").length;
-  countPlatino.innerText=espera.filter(p=>p.tarjeta==="Platino").length;
-  countAeromexico.innerText=espera.filter(p=>p.tarjeta==="Aeromexico").length;
-
-  // tabla atendidos
+  const atendidos = historial.filter(p=>p.estado==="Finalizado");
   tablaAtendidos.innerHTML="";
-  const atendidos=historial.filter(p=>p.estado==="Finalizado");
+
+  let sumG=0,sumP=0,sumC=0,cG=0,cP=0,cC=0;
   atendidos.forEach(p=>{
-    const min=((new Date(p.horaLlamada)-new Date(p.horaRegistro))/60000).toFixed(1);
+    const min=(new Date(p.horaLlamada)-new Date(p.horaRegistro))/60000;
     tablaAtendidos.innerHTML+=`
-      <tr>
-        <td>${p.turno}</td><td>${p.nombre}</td><td>${p.cantidad}</td>
-        <td>${p.tarjeta}</td><td>${p.mostrador}</td><td>${min}</td>
-      </tr>`;
+    <tr>
+      <td>${p.turno}</td><td>${p.nombre}</td><td>${p.cantidad}</td>
+      <td>${p.tarjeta}</td><td>${p.mostrador}</td><td>${min.toFixed(1)}</td>
+    </tr>`;
+    sumG+=min;cG++;
+    if(p.mostrador==="Platino"){sumP+=min;cP++;}
+    if(p.mostrador==="Centurion"){sumC+=min;cC++;}
   });
 
-  promedioEspera.innerText=atendidos.length
-    ? (atendidos.reduce((a,p)=>a+(new Date(p.horaLlamada)-new Date(p.horaRegistro))/60000,0)/atendidos.length).toFixed(1)
-    : 0;
+  totalRegistros.innerText = espera.length;
+  totalPax.innerText = espera.reduce((a,b)=>a+b.cantidad,0);
+  countCenturion.innerText = espera.filter(p=>p.tarjeta==="Centurion").length;
+  countPlatino.innerText = espera.filter(p=>p.tarjeta==="Platino").length;
+  countAeromexico.innerText = espera.filter(p=>p.tarjeta==="Aeromexico").length;
 
-  totalAtendidos.innerText=atendidos.reduce((a,b)=>a+b.cantidad,0);
+  promedioEspera.innerText = cG?(sumG/cG).toFixed(1):0;
+  promedioPlatino.innerText = cP?(sumP/cP).toFixed(1):0;
+  promedioCenturion.innerText = cC?(sumC/cC).toFixed(1):0;
+  totalAtendidos.innerText = atendidos.reduce((a,b)=>a+b.cantidad,0);
 }
 
-// --- PANTALLA PUBLICA ---
-function abrirPantalla(){
-  if(!pantalla || pantalla.closed){
-    pantalla=window.open("pantalla.html","pantalla","width=800,height=600");
-  }
-}
-
-function actualizarPantalla(){
-  if(!pantalla || pantalla.closed) return;
-  pantalla.postMessage({espera,ultimo:espera.find(p=>p.estado==="Llamado")||null},"*");
+function toggleAtendidos(){
+  atendidosVisible = !atendidosVisible;
+  atendidosContent.style.display = atendidosVisible?"block":"none";
+  toggleAtendidos.innerText = atendidosVisible?"Pasajeros Atendidos ▲":"Pasajeros Atendidos ▼";
 }
 
 function imprimirTicket(p){
-  const w=window.open("","","width=300,height=400");
+  const w = window.open("","","width=300,height=400");
   w.document.write(`<pre>
 ✈ LISTA DE ESPERA
 Turno: ${p.turno}
@@ -284,30 +318,63 @@ ${new Date().toLocaleString()}
   w.print(); w.close();
 }
 
-function toggleDark(){document.body.classList.toggle("dark");}
+function abrirPantalla(tipo){
+  const map={
+    general:"pantalla_general.html",
+    platino:"pantalla_platino.html",
+    centurion:"pantalla_centurion.html"
+  };
+  window.open(map[tipo],tipo,"fullscreen=yes");
+}
+
+function exportarExcel(){
+  const data=[["Turno","Nombre","Pax","Tarjeta","Mostrador","Registro","Llamada","Estado"]];
+  
+  [...espera,...historial].forEach(p=>{
+    data.push([p.turno,p.nombre,p.cantidad,p.tarjeta,p.mostrador,p.horaRegistro,p.horaLlamada,p.estado]);
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, "ListaEspera");
+
+  // Obtener fecha actual en formato YYYY-MM-DD
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0'); // meses empiezan en 0
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  const fecha = `${yyyy}-${mm}-${dd}`;
+
+  XLSX.writeFile(wb, `lista_de_espera_${fecha}.xlsx`);
+}
+
 
 function borrarHistorial(){
-  if(confirm("¿Borrar historial?")){
-    historial=[];
-    localStorage.setItem("historial","[]");
-    localStorage.setItem("limpiarPublico","1");
+  if(confirm("¿Borrar TODO el historial y limpiar todas las pantallas?")){
+    
+    // BORRAR TODA LA LOCAL STORAGE
+    localStorage.clear();
+
+    // SEÑAL GLOBAL PARA TODAS LAS PANTALLAS
+    localStorage.setItem("limpiarPublico", Date.now().toString());
+
+    // REINICIAR VARIABLES EN MEMORIA
+    espera = [];
+    historial = [];
+    turnoActual = 1;
+
     render();
   }
 }
 
-function exportarExcel(){
-  const ws_data=[["Turno","Nombre","Pax","Tarjeta","Mostrador","Hora Registro","Hora Llamada","Estado"]];
-  [...espera,...historial].forEach(p=>{
-    ws_data.push([p.turno,p.nombre,p.cantidad,p.tarjeta,p.mostrador,p.horaRegistro,p.horaLlamada,p.estado]);
-  });
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet(ws_data);
-  XLSX.utils.book_append_sheet(wb,ws,"ListaEspera");
-  XLSX.writeFile(wb,"ListaEspera.xlsx");
-}
 
-// actualizar cada segundo
-setInterval(render,1000);
+function toggleDark(){document.body.classList.toggle("dark");}
+
+function guardar(){
+  localStorage.setItem("espera", JSON.stringify(espera));
+  localStorage.setItem("historial", JSON.stringify(historial));
+  localStorage.setItem("turnoActual", turnoActual);
+}
 
 render();
 </script>
