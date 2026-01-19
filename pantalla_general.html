@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <title>Pantalla General</title>
+<link rel="icon" href="z(1).png" type="image/png">
 
 <style>
 body{
   margin:0;
   font-family:Segoe UI,sans-serif;
-  background:#0b2a5b;
+  background:#006FCF;
   color:#fff;
   text-align:center;
 }
@@ -23,32 +24,31 @@ h1{font-size:50px;margin:20px 0;}
   justify-content:center;
   gap:20px;
 }
+
 .turnoCard{
-  background:#1f1f1f;
   padding:20px;
   border-radius:10px;
   width:200px;
 }
-.Centurion{border-left:8px solid gold;}
-.Platino{border-left:8px solid silver;}
 
-.llamado{animation:pulse .7s;}
-@keyframes pulse{
-  0%{transform:scale(1);}
-  50%{transform:scale(1.05);}
-  100%{transform:scale(1);}
-}
+/* 🎨 COLORES POR TARJETA */
+.turnoCard.Centurion{background:#0B0B0B;color:#fff;}
+.turnoCard.Platino{background:#ec4899;color:#fff;}
+.turnoCard.Aeromexico{background:#16a34a;color:#fff;}
 </style>
 </head>
 
 <body>
 <h1>✈ LISTA DE ESPERA</h1>
+
 <div id="proximoTurno">0</div>
 <div id="nombre">---</div>
 <div id="mostrador">---</div>
 <div class="listaTurnos" id="lista"></div>
 
 <script>
+const prioridad={Centurion:1,Platino:2,Aeromexico:3};
+
 function limpiarPantalla(){
   proximoTurno.innerText="0";
   nombre.innerText="---";
@@ -57,24 +57,25 @@ function limpiarPantalla(){
 }
 
 function actualizar(){
-  const limpiar = localStorage.getItem("limpiarPublico");
-  if(limpiar){
+  if(localStorage.getItem("limpiarPublico")){
     limpiarPantalla();
     localStorage.removeItem("limpiarPublico");
   }
 
-  const ultimo = JSON.parse(localStorage.getItem("ultimoLlamado"));
-  const espera = JSON.parse(localStorage.getItem("espera")) || [];
+  const ultimo=JSON.parse(localStorage.getItem("ultimoLlamado"));
+  let espera=JSON.parse(localStorage.getItem("espera"))||[];
+
+  espera.sort((a,b)=>prioridad[a.tarjeta]-prioridad[b.tarjeta]);
 
   if(ultimo){
-    proximoTurno.innerText = ultimo.turno;
-    nombre.innerText = ultimo.nombre;
-    mostrador.innerText = ultimo.mostrador;
+    proximoTurno.innerText=ultimo.turno;
+    nombre.innerText=ultimo.nombre;
+    mostrador.innerText=ultimo.mostrador;
   }
 
-  lista.innerHTML = "";
+  lista.innerHTML="";
   espera.slice(0,5).forEach(p=>{
-    lista.innerHTML += `
+    lista.innerHTML+=`
       <div class="turnoCard ${p.tarjeta}">
         <b>#${p.turno}</b><br>${p.nombre}<br>${p.mostrador}
       </div>`;
