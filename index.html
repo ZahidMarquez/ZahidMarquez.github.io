@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>LISTA DE ESPERA GZOM</title>
-<link rel="icon" href="z(1).png" type="image/png">
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 :root{
@@ -11,7 +12,6 @@
   --gris:#F4F6F9;
   --verde:#007A5A;
   --rojo:#C62828;
-  --amarillo:#F5C400;
   --morado:#003A8F;
 }
 
@@ -60,13 +60,9 @@ input,select{
 
 .form-grid{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(3,1fr);
   gap:14px;
   align-items:end;
-}
-
-@media(max-width:900px){
-  .form-grid{grid-template-columns:1fr;}
 }
 
 button{
@@ -79,38 +75,28 @@ button{
 }
 
 .primary{background:var(--azul);}
+.rojo{background:var(--rojo);}
 .llamar{background:var(--verde);}
 .finalizar{background:var(--morado);}
 .retirada{background:#6b7280;}
-.rojo{background:var(--rojo);}
 
 .stats-container{display:flex;gap:12px;flex-wrap:wrap;}
 .stat-card{
-  flex:1 1 220px;
+  flex:1 1 200px;
   padding:12px;
   border-radius:8px;
   color:#fff;
   text-align:center;
 }
+
 .stat-total{background:var(--azul);}
 .stat-pax{background:var(--verde);}
-.stat-tarjeta{background:var(--amarillo);color:#000;}
-.stat-promedio{background:var(--morado);}
+.stat-prom{background:var(--morado);}
 .stat-atendidos{background:#374151;}
-.stat-mostrador{background:#1F2933;}
 
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{background:var(--azul);color:#fff;padding:6px;}
 td{border:1px solid #ccc;padding:5px;text-align:center;}
-
-#toggleAtendidos{
-  cursor:pointer;
-  background:#1F2933;
-  color:#fff;
-  padding:6px;
-  border-radius:4px;
-}
-#atendidosContent{display:none;}
 </style>
 </head>
 
@@ -123,7 +109,7 @@ td{border:1px solid #ccc;padding:5px;text-align:center;}
   <div class="form-grid">
     <div>
       <label>Nombre</label>
-      <input id="nombre" autocomplete="off">
+      <input id="nombre">
     </div>
     <div>
       <label>Pax</label>
@@ -137,39 +123,43 @@ td{border:1px solid #ccc;padding:5px;text-align:center;}
         <option>Aeromexico</option>
       </select>
     </div>
-    <div>
-      <label>Mostrador</label>
-      <select id="mostrador">
-        <option>Centurion</option>
-        <option>Platino</option>
-      </select>
-    </div>
   </div>
-  <button class="primary" onclick="registrar()">➕ Registrar e Imprimir Ticket</button>
+  <button class="primary" id="btnRegistrar">➕ Registrar</button>
 </div>
 
 <div class="card">
-  <button class="primary" onclick="abrirPantalla('general')">📺 General</button>
-  <button class="primary" onclick="abrirPantalla('platino')">📺 Platino</button>
-  <button class="primary" onclick="abrirPantalla('centurion')">📺 Centurion</button>
-  <button class="primary" onclick="exportarExcel()">📊 Excel</button>
-  <button class="rojo" onclick="borrarHistorial()">🗑️ Historial</button>
-  <button class="primary" onclick="toggleDark()">🌙 Oscuro</button>
+  <button class="primary" onclick="descargarExcel()">📊 Descargar Excel</button>
+  <button class="rojo" onclick="borrarTodo()">🗑 Borrar Todos los Registros</button>
 </div>
 
 <div class="card stats-container">
-  <div class="stat-card stat-total">En espera<br><h3 id="totalRegistros">0</h3></div>
-  <div class="stat-card stat-pax">Pax en espera<br><h3 id="totalPax">0</h3></div>
-  <div class="stat-card stat-tarjeta">
-    Tarjetas<br>
-    Centurion: <span id="countCenturion">0</span><br>
-    Platino: <span id="countPlatino">0</span><br>
-    Aero: <span id="countAeromexico">0</span>
+  <div class="stat-card stat-total">
+    En espera<br><h3 id="totalRegistros">0</h3>
   </div>
-  <div class="stat-card stat-promedio">Promedio General<br><h3 id="promedioEspera">0</h3></div>
-  <div class="stat-card stat-mostrador">Prom. Platino<br><h3 id="promedioPlatino">0</h3></div>
-  <div class="stat-card stat-mostrador">Prom. Centurion<br><h3 id="promedioCenturion">0</h3></div>
-  <div class="stat-card stat-atendidos">Pax Atendidos<br><h3 id="totalAtendidos">0</h3></div>
+
+  <div class="stat-card stat-pax">
+    Pax en espera<br><h3 id="totalPax">0</h3>
+  </div>
+
+  <div class="stat-card stat-prom">
+    Prom. Centurion<br><h3 id="promCenturion">0</h3>
+  </div>
+
+  <div class="stat-card stat-prom">
+    Prom. Platino<br><h3 id="promPlatino">0</h3>
+  </div>
+
+  <div class="stat-card stat-prom">
+    Prom. Aeromexico<br><h3 id="promAero">0</h3>
+  </div>
+
+  <div class="stat-card stat-prom">
+    Prom. General<br><h3 id="promGeneral">0</h3>
+  </div>
+
+  <div class="stat-card stat-atendidos">
+    Pax Atendidos<br><h3 id="totalAtendidos">0</h3>
+  </div>
 </div>
 
 <div class="card">
@@ -177,90 +167,84 @@ td{border:1px solid #ccc;padding:5px;text-align:center;}
 <table>
 <thead>
 <tr>
-<th>Turno</th><th>Nombre</th><th>Pax</th><th>Tarjeta</th>
-<th>Mostrador</th><th>Registro</th><th>Llamada</th><th>Estado</th><th>Acciones</th>
+<th>Turno</th><th>Nombre</th><th>Pax</th>
+<th>Tarjeta</th><th>Registro</th><th>Llamada</th>
+<th>Estado</th><th>Acciones</th>
 </tr>
 </thead>
 <tbody id="tabla"></tbody>
 </table>
 </div>
 
-<div class="card">
-<div id="toggleAtendidos" onclick="toggleAtendidos()">Pasajeros Atendidos ▼</div>
-<div id="atendidosContent">
-<table>
-<thead>
-<tr>
-<th>Turno</th><th>Nombre</th><th>Pax</th><th>Tarjeta</th>
-<th>Mostrador</th><th>Espera (min)</th>
-</tr>
-</thead>
-<tbody id="tablaAtendidos"></tbody>
-</table>
 </div>
-</div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
+const nombre = document.getElementById("nombre");
+const cantidad = document.getElementById("cantidad");
+const tarjeta = document.getElementById("tarjeta");
+const btnRegistrar = document.getElementById("btnRegistrar");
+const tabla = document.getElementById("tabla");
+
 let espera = JSON.parse(localStorage.getItem("espera")) || [];
 let historial = JSON.parse(localStorage.getItem("historial")) || [];
-let turnoActual = JSON.parse(localStorage.getItem("turnoActual")) || 1;
-let atendidosVisible = false;
+let turnoActual = espera.length ? espera[espera.length-1].turno + 1 : 1;
 
-function registrar(){
+function guardar(){
+  localStorage.setItem("espera", JSON.stringify(espera));
+  localStorage.setItem("historial", JSON.stringify(historial));
+}
+
+/* 🔥 PRIORIDAD SOLO PARA CENTURION */
+function ordenarEspera(){
+  espera.sort((a,b)=>{
+
+    if(a.tarjeta === "Centurion" && b.tarjeta !== "Centurion"){
+      return -1;
+    }
+
+    if(a.tarjeta !== "Centurion" && b.tarjeta === "Centurion"){
+      return 1;
+    }
+
+    return a.registro - b.registro;
+  });
+}
+
+btnRegistrar.addEventListener("click",()=>{
   if(!nombre.value) return alert("Nombre requerido");
-  const p = {
+
+  const nuevo = {
     turno: turnoActual++,
     nombre: nombre.value,
     cantidad: +cantidad.value,
     tarjeta: tarjeta.value,
-    mostrador: mostrador.value,
-    estado: "Pendiente",
-    horaRegistro: new Date().toISOString(),
-    horaLlamada: null
+    registro: Date.now(),
+    llamada: null,
+    estado: "Pendiente"
   };
-  espera.push(p);
+
+  espera.push(nuevo);
   guardar();
-  imprimirTicket(p);
-  nombre.value = ""; cantidad.value = 1;
   render();
-}
 
-function llamar(i){
-  espera[i].estado="Llamado";
-  espera[i].horaLlamada=new Date().toISOString();
-  localStorage.setItem("ultimoLlamado",JSON.stringify(espera[i]));
-  speechSynthesis.speak(new SpeechSynthesisUtterance(`Turno ${espera[i].turno}, mostrador ${espera[i].mostrador}`));
-  guardar(); render();
-}
-
-function finalizar(i){
-  const p = espera.splice(i,1)[0];
-  p.estado = "Finalizado";
-  if(!p.horaLlamada)p.horaLlamada=new Date().toISOString();
-  historial.push(p);
-  guardar(); render();
-}
-
-function retirada(i){
-  const p = espera.splice(i,1)[0];
-  p.estado="Retirado";
-  historial.push(p);
-  guardar(); render();
-}
+  nombre.value="";
+  cantidad.value=1;
+});
 
 function render(){
+  ordenarEspera();
+
   tabla.innerHTML="";
+
   espera.forEach((p,i)=>{
     tabla.innerHTML+=`
     <tr>
-      <td>${p.turno}</td><td>${p.nombre}</td><td>${p.cantidad}</td>
-      <td>${p.tarjeta}</td><td>${p.mostrador}</td>
-      <td>${new Date(p.horaRegistro).toLocaleTimeString()}</td>
-      <td>${p.horaLlamada?new Date(p.horaLlamada).toLocaleTimeString():'---'}</td>
+      <td>${p.turno}</td>
+      <td>${p.nombre}</td>
+      <td>${p.cantidad}</td>
+      <td>${p.tarjeta}</td>
+      <td>${new Date(p.registro).toLocaleTimeString()}</td>
+      <td>${p.llamada?new Date(p.llamada).toLocaleTimeString():"---"}</td>
       <td>${p.estado}</td>
       <td>
         <button class="llamar" onclick="llamar(${i})">Llamar</button>
@@ -270,113 +254,75 @@ function render(){
     </tr>`;
   });
 
-  const atendidos = historial.filter(p=>p.estado==="Finalizado");
-  tablaAtendidos.innerHTML="";
-
-  let sumG=0,sumP=0,sumC=0,cG=0,cP=0,cC=0;
-  atendidos.forEach(p=>{
-    const min=(new Date(p.horaLlamada)-new Date(p.horaRegistro))/60000;
-    tablaAtendidos.innerHTML+=`
-    <tr>
-      <td>${p.turno}</td><td>${p.nombre}</td><td>${p.cantidad}</td>
-      <td>${p.tarjeta}</td><td>${p.mostrador}</td><td>${min.toFixed(1)}</td>
-    </tr>`;
-    sumG+=min;cG++;
-    if(p.mostrador==="Platino"){sumP+=min;cP++;}
-    if(p.mostrador==="Centurion"){sumC+=min;cC++;}
-  });
-
   totalRegistros.innerText = espera.length;
   totalPax.innerText = espera.reduce((a,b)=>a+b.cantidad,0);
-  countCenturion.innerText = espera.filter(p=>p.tarjeta==="Centurion").length;
-  countPlatino.innerText = espera.filter(p=>p.tarjeta==="Platino").length;
-  countAeromexico.innerText = espera.filter(p=>p.tarjeta==="Aeromexico").length;
 
-  promedioEspera.innerText = cG?(sumG/cG).toFixed(1):0;
-  promedioPlatino.innerText = cP?(sumP/cP).toFixed(1):0;
-  promedioCenturion.innerText = cC?(sumC/cC).toFixed(1):0;
-  totalAtendidos.innerText = atendidos.reduce((a,b)=>a+b.cantidad,0);
+  calcularPromedios();
 }
 
-function toggleAtendidos(){
-  atendidosVisible = !atendidosVisible;
-  atendidosContent.style.display = atendidosVisible?"block":"none";
-  toggleAtendidos.innerText = atendidosVisible?"Pasajeros Atendidos ▲":"Pasajeros Atendidos ▼";
+function llamar(i){
+  espera[i].llamada = Date.now();
+  guardar();
+  render();
 }
 
-function imprimirTicket(p){
-  const w = window.open("","","width=300,height=400");
-  w.document.write(`<pre>
-✈ LISTA DE ESPERA
-Turno: ${p.turno}
-Nombre: ${p.nombre}
-Pax: ${p.cantidad}
-Tarjeta: ${p.tarjeta}
-Mostrador: ${p.mostrador}
-${new Date().toLocaleString()}
-</pre>`);
-  w.print(); w.close();
+function finalizar(i){
+  const p = espera[i];
+  const minutos = Math.floor((Date.now()-p.registro)/60000);
+  historial.push({...p, esperaMin:minutos});
+  espera.splice(i,1);
+  guardar();
+  render();
 }
 
-function abrirPantalla(tipo){
-  const map={
-    general:"pantalla_general.html",
-    platino:"pantalla_platino.html",
-    centurion:"pantalla_centurion.html"
-  };
-  window.open(map[tipo],tipo,"fullscreen=yes");
+function retirada(i){
+  espera.splice(i,1);
+  guardar();
+  render();
 }
 
-function exportarExcel(){
-  const data=[["Turno","Nombre","Pax","Tarjeta","Mostrador","Registro","Llamada","Estado"]];
-  
-  [...espera,...historial].forEach(p=>{
-    data.push([p.turno,p.nombre,p.cantidad,p.tarjeta,p.mostrador,p.horaRegistro,p.horaLlamada,p.estado]);
-  });
+function promedioPorTarjeta(tipo){
+  const datos = historial.filter(p=>p.tarjeta===tipo);
+  if(!datos.length) return 0;
+  return (datos.reduce((a,b)=>a+b.esperaMin,0)/datos.length).toFixed(1);
+}
 
+function promedioGeneral(){
+  if(!historial.length) return 0;
+  return (historial.reduce((a,b)=>a+b.esperaMin,0)/historial.length).toFixed(1);
+}
+
+function calcularPromedios(){
+  promCenturion.innerText = promedioPorTarjeta("Centurion")+" min";
+  promPlatino.innerText = promedioPorTarjeta("Platino")+" min";
+  promAero.innerText = promedioPorTarjeta("Aeromexico")+" min";
+  promGeneral.innerText = promedioGeneral()+" min";
+  totalAtendidos.innerText = historial.reduce((a,b)=>a+b.cantidad,0);
+}
+
+function descargarExcel(){
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  XLSX.utils.book_append_sheet(wb, ws, "ListaEspera");
+  const wsEspera = XLSX.utils.json_to_sheet(espera);
+  const wsHistorial = XLSX.utils.json_to_sheet(historial);
 
-  // Obtener fecha actual en formato YYYY-MM-DD
-  const hoy = new Date();
-  const yyyy = hoy.getFullYear();
-  const mm = String(hoy.getMonth() + 1).padStart(2, '0'); // meses empiezan en 0
-  const dd = String(hoy.getDate()).padStart(2, '0');
-  const fecha = `${yyyy}-${mm}-${dd}`;
+  XLSX.utils.book_append_sheet(wb, wsEspera, "En Espera");
+  XLSX.utils.book_append_sheet(wb, wsHistorial, "Atendidos");
 
-  XLSX.writeFile(wb, `lista_de_espera_${fecha}.xlsx`);
+  XLSX.writeFile(wb, "reporte_lista_espera.xlsx");
 }
 
-
-function borrarHistorial(){
-  if(confirm("¿Borrar TODO el historial y limpiar todas las pantallas?")){
-    
-    // BORRAR TODA LA LOCAL STORAGE
-    localStorage.clear();
-
-    // SEÑAL GLOBAL PARA TODAS LAS PANTALLAS
-    localStorage.setItem("limpiarPublico", Date.now().toString());
-
-    // REINICIAR VARIABLES EN MEMORIA
-    espera = [];
-    historial = [];
-    turnoActual = 1;
-
+function borrarTodo(){
+  if(confirm("¿Seguro que deseas borrar TODOS los registros?")){
+    espera=[];
+    historial=[];
+    turnoActual=1;
+    guardar();
     render();
   }
 }
 
-
-function toggleDark(){document.body.classList.toggle("dark");}
-
-function guardar(){
-  localStorage.setItem("espera", JSON.stringify(espera));
-  localStorage.setItem("historial", JSON.stringify(historial));
-  localStorage.setItem("turnoActual", turnoActual);
-}
-
 render();
 </script>
+
 </body>
 </html>
